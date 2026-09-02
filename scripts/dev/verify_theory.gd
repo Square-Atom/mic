@@ -142,6 +142,57 @@ func _initialize() -> void:
 					failures += 1
 	print("  ok   tonic/subdominant/dominant land on degrees 1, 4, 5 in all 30 keys")
 
+	print("\n=== Functional families ===")
+	for mode in [KeyDef.Mode.MAJOR, KeyDef.Mode.MINOR]:
+		var key := MusicTheory.key_at(0, mode)
+		var tags := PackedStringArray()
+		for chord in MusicTheory.diatonic_chords(key, false):
+			var fam: int = MusicTheory.chord_family(chord)
+			var tag: String = ["T", "S", "D"][fam]
+			tags.append("%s=%s" % [chord.roman_numeral(), tag])
+		print("  %-10s %s" % [key.display_name(), " ".join(tags)])
+
+	# The grouping only means anything because family members share two of their
+	# three notes - that is what lets one substitute for another.
+	for slot in 12:
+		for mode in [KeyDef.Mode.MAJOR, KeyDef.Mode.MINOR]:
+			var probe := MusicTheory.key_at(slot, mode)
+			var chords := MusicTheory.diatonic_chords(probe, false)
+			for pair in [[0, 2], [0, 5], [3, 1], [4, 6]]:
+				var shared := 0
+				for pc in _pcs(chords[pair[0]].notes):
+					if _pcs(chords[pair[1]].notes).has(pc):
+						shared += 1
+				if shared != 2:
+					print("  FAIL %s: %s and %s share %d notes, expected 2" % [
+						probe.display_name(), chords[pair[0]].symbol(),
+						chords[pair[1]].symbol(), shared])
+					failures += 1
+	print("  ok   family members share exactly two notes, all 24 keys")
+
+	print("\n=== Scale degree names ===")
+	for mode in [KeyDef.Mode.MAJOR, KeyDef.Mode.MINOR]:
+		var key := MusicTheory.key_at(0, mode)
+		var names := PackedStringArray()
+		for chord in MusicTheory.diatonic_chords(key, false):
+			names.append(MusicTheory.degree_name(key, chord))
+		print("  %-10s %s" % [key.display_name(), " / ".join(names)])
+
+	# The seventh is the only degree whose name is not fixed: it leads only when
+	# it sits a semitone under the tonic, which natural minor does not do.
+	for slot in 12:
+		var major := MusicTheory.key_at(slot, KeyDef.Mode.MAJOR)
+		var minor := MusicTheory.key_at(slot, KeyDef.Mode.MINOR)
+		var major_seventh := MusicTheory.diatonic_chords(major, false)[6]
+		var minor_seventh := MusicTheory.diatonic_chords(minor, false)[6]
+		if MusicTheory.degree_name(major, major_seventh) != "Leading Tone":
+			print("  FAIL %s seventh is not a leading tone" % major.display_name())
+			failures += 1
+		if MusicTheory.degree_name(minor, minor_seventh) != "Subtonic":
+			print("  FAIL %s seventh is not a subtonic" % minor.display_name())
+			failures += 1
+	print("  ok   seventh leads in every major key, is subtonic in every minor")
+
 	print("\n=== Seventh handling ===")
 	var v7 := MusicTheory.diatonic_chords(MusicTheory.key_at(0, KeyDef.Mode.MAJOR), true)[4]
 	failures += _expect("C major V7 symbol", v7.symbol(), "G7")

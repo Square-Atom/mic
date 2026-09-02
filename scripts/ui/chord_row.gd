@@ -15,6 +15,7 @@ const BOLD_FONT := preload("res://themes/font_bold.tres")
 @onready var _roman: Label = %Roman
 @onready var _symbol: Label = %ChordName
 @onready var _notes: Label = %NoteNames
+@onready var _degree_name: Label = %DegreeName
 @onready var _keyboard: PianoKeyboard = %Keyboard
 
 var _chord: Chord = null
@@ -31,9 +32,7 @@ func _ready() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	_roman.add_theme_font_override("font", BOLD_FONT)
-	_roman.add_theme_color_override("font_color", Palette.ACCENT)
 	_symbol.add_theme_color_override("font_color", Palette.TEXT)
-	_notes.add_theme_color_override("font_color", Palette.TEXT_DIM)
 
 	_keyboard.key_pressed.connect(_on_keyboard_key_pressed)
 	# set_chord may have been called before the node was ready; apply it now.
@@ -65,6 +64,29 @@ func _apply() -> void:
 	for note in _chord.notes:
 		labels[note.pitch_class()] = note.display_name()
 	_keyboard.set_key_labels(labels)
+
+	# The numeral, its name and the note list take the chord's FAMILY colour,
+	# while the keyboard keeps the primary-chord colouring. Two different facts
+	# about the same chord, told in two different places: the text says which
+	# family it belongs to, the keys say whether it is one of the three
+	# primaries.
+	_degree_name.text = MusicTheory.degree_name(_key, _chord)
+	var family := _family_color()
+	_roman.add_theme_color_override("font_color", family)
+	_notes.add_theme_color_override("font_color", family)
+	_degree_name.add_theme_color_override("font_color", family)
+
+
+## The colour of this chord's functional family. Every degree has one, so all
+## seven rows are coloured - unlike the keyboard, where only the three primary
+## chords are picked out.
+func _family_color() -> Color:
+	match MusicTheory.chord_family(_chord):
+		MusicTheory.Family.SUBDOMINANT:
+			return Palette.SUBDOMINANT
+		MusicTheory.Family.DOMINANT:
+			return Palette.DOMINANT
+	return Palette.ACCENT
 
 
 ## The colour family this row works in. The tonic, subdominant and dominant

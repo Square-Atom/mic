@@ -152,6 +152,61 @@ static func chord_function(key: KeyDef, chord: Chord) -> int:
 	return Function.NONE
 
 
+## The three functional families, which sort ALL seven degrees rather than only
+## the three primaries.
+##
+## The grouping comes from thirds, not fifths: chords a diatonic third apart
+## share two of their three notes (I = C E G and vi = A C E share C and E), and
+## two shared notes is what lets one stand in for the other. The table is
+## indexed by degree, which makes it right in both modes, since those
+## third-relationships are the same in major and minor.
+enum Family { TONIC, SUBDOMINANT, DOMINANT }
+
+const DEGREE_FAMILIES := [
+	Family.TONIC,        # I    home
+	Family.SUBDOMINANT,  # ii   a third under IV, and shares two notes with it
+	Family.TONIC,        # iii  shares two notes with I - though also two with V
+	Family.SUBDOMINANT,  # IV
+	Family.DOMINANT,     # V
+	Family.TONIC,        # vi   the relative minor of I
+	Family.DOMINANT,     # vii  V7 with its root removed
+]
+
+
+## Which functional family a chord belongs to. Unlike chord_function(), every
+## degree has an answer, not just the three primaries.
+static func chord_family(chord: Chord) -> int:
+	return DEGREE_FAMILIES[wrapi(chord.degree, 0, 7)]
+
+
+## The traditional name of each scale degree. Tonic, Subdominant and Dominant
+## are not a separate idea from the rest - they are simply the three of these
+## seven that also name a harmonic function.
+const DEGREE_NAMES := [
+	"Tonic",
+	"Supertonic",
+	"Mediant",
+	"Subdominant",
+	"Dominant",
+	"Submediant",
+	"Leading Tone",
+]
+
+
+## The name of the degree a chord is built on.
+static func degree_name(key: KeyDef, chord: Chord) -> String:
+	var degree := wrapi(chord.degree, 0, 7)
+	if degree == 6:
+		# The seventh is the one degree whose name depends on where it actually
+		# sits. A semitone under the tonic it pulls towards it - it LEADS. Natural
+		# minor puts it a whole tone below, with no such pull, and there it is
+		# the subtonic instead. Read from the interval rather than the mode, so
+		# this stays right for any scale.
+		var above := wrapi(chord.root().pitch_class() - key.tonic.pitch_class(), 0, 12)
+		return "Leading Tone" if above == 11 else "Subtonic"
+	return DEGREE_NAMES[degree]
+
+
 ## Semitones from `root_pc` up to `pc`, always ascending (0-11).
 static func _interval_above(root_pc: int, pc: int) -> int:
 	return wrapi(pc - root_pc, 0, 12)
