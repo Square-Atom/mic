@@ -117,6 +117,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
-[node name="Credits" type="RichTextLabel" parent="Margin/VBox"]
+[node name="Credits" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
 script = ExtResource("3_credits")
