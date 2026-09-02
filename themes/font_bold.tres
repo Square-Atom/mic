@@ -1,10 +1,8 @@
-[gd_resource type="SystemFont" format=3 uid="uid://bsb70bliwe4cn"]
+[gd_resource type="FontVariation" load_steps=3 format=3 uid="uid://bsb70bliwe4cn"]
 
-[sub_resource type="SystemFont" id="SystemFont_symbols"]
-font_names = PackedStringArray("Segoe UI Symbol", "Segoe UI Historic", "DejaVu Sans", "Arial Unicode MS")
-font_weight = 700
+[ext_resource type="FontFile" path="res://themes/NotoSans-Bold.ttf" id="1_bold"]
+[ext_resource type="FontFile" path="res://themes/NotoMusic-Regular.ttf" id="2_music"]
 
 [resource]
-fallbacks = Array[Font]([SubResource("SystemFont_symbols")])
-font_names = PackedStringArray("Segoe UI", "Selawik", "Arial")
-font_weight = 700
+base_font = ExtResource("1_bold")
+fallbacks = Array[Font]([ExtResource("2_music")])
