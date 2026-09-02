@@ -1,0 +1,61 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/chord_panel.tscn" id="1_panel"]
+[ext_resource type="PackedScene" path="res://scenes/circle_of_fifths.tscn" id="2_circle"]
+[ext_resource type="Script" path="res://scripts/ui/legend.gd" id="3_legend"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.070588, 0.078431, 0.101961, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="ChordPanel" parent="Margin/HBox" instance=ExtResource("1_panel")]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.2
+
+[node name="RightPane" type="VBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="CirclePane" type="AspectRatioContainer" parent="Margin/HBox/RightPane"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CircleOfFifths" parent="Margin/HBox/RightPane/CirclePane" instance=ExtResource("2_circle")]
+layout_mode = 2
+
+[node name="CircleLegend" type="HBoxContainer" parent="Margin/HBox/RightPane"]
+layout_mode = 2
+alignment = 1
+script = ExtResource("3_legend")
+preset = 0

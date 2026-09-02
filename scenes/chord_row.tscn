@@ -1,0 +1,54 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/chord_row.gd" id="1_row"]
+[ext_resource type="PackedScene" path="res://scenes/piano_keyboard.tscn" id="2_keyboard"]
+
+[node name="ChordRow" type="PanelContainer"]
+offset_right = 760.0
+offset_bottom = 84.0
+script = ExtResource("1_row")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Marker" type="Panel" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(6, 0)
+layout_mode = 2
+
+[node name="Roman" type="Label" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "I"
+vertical_alignment = 1
+
+[node name="ChordName" type="Label" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(142, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "C"
+vertical_alignment = 1
+
+[node name="NoteNames" type="Label" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(224, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "C – E – G"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Keyboard" parent="HBox" instance=ExtResource("2_keyboard")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+white_key_width = 34.0
+key_height = 84.0

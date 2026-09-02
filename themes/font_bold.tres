@@ -1,0 +1,10 @@
+[gd_resource type="SystemFont" load_steps=2 format=3]
+
+[sub_resource type="SystemFont" id="SystemFont_symbols"]
+font_names = PackedStringArray("Segoe UI Symbol", "Segoe UI Historic", "DejaVu Sans", "Arial Unicode MS")
+font_weight = 700
+
+[resource]
+fallbacks = Array[Font]([SubResource("SystemFont_symbols")])
+font_names = PackedStringArray("Segoe UI", "Selawik", "Arial")
+font_weight = 700
