@@ -158,8 +158,15 @@ func _state_for(segment: CircleSegment, key: KeyDef) -> int:
 	if segment.mode == ring:
 		var steps := wrapi(segment.circle_position - key.circle_position, 0, 12)
 		if (steps == 1 or steps == 11) and _matches_spelling(segment, key):
-			return CircleSegment.State.DOMINANT if steps == 1 \
-					else CircleSegment.State.SUBDOMINANT
+			# A wedge a fifth away only means that function while the mode still
+			# spells the perfect interval. Lydian has no perfect fourth and Locrian
+			# no perfect fifth, so there the mark would send the reader to a key
+			# built on a note the scale does not contain.
+			var degree := 4 if steps == 1 else 3
+			if MusicTheory.has_function_degree(key.mode, degree):
+				if steps == 1:
+					return CircleSegment.State.DOMINANT
+				return CircleSegment.State.SUBDOMINANT
 	return CircleSegment.State.NORMAL
 
 

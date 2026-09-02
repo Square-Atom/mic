@@ -295,19 +295,44 @@ const DEGREE_NAMES := [
 	"Leading Tone",
 ]
 
+## The interval a name asserts, for the degrees whose name is a claim about
+## distance rather than merely position. Subdominant and Dominant do not mean
+## "the fourth" and "the fifth" - they name the PERFECT fourth and fifth, the
+## two consonances a tonic is heard against. Lydian raises the fourth and
+## Locrian flattens the fifth, and once the interval is gone, so is the pull
+## the name describes.
+const FUNCTION_INTERVALS := {3: 5, 4: 7}
+
 
 ## The name of the degree a chord is built on.
 static func degree_name(key: KeyDef, chord: Chord) -> String:
 	var degree := wrapi(chord.degree, 0, 7)
+	var above := _interval_above(key.tonic.pitch_class(), chord.root().pitch_class())
 	if degree == 6:
-		# The seventh is the one degree whose name depends on where it actually
-		# sits. A semitone under the tonic it pulls towards it - it LEADS. Natural
-		# minor puts it a whole tone below, with no such pull, and there it is
-		# the subtonic instead. Read from the interval rather than the mode, so
-		# this stays right for any scale.
-		var above := wrapi(chord.root().pitch_class() - key.tonic.pitch_class(), 0, 12)
+		# The seventh depends on where it actually sits. A semitone under the
+		# tonic it pulls towards it - it LEADS. Natural minor puts it a whole tone
+		# below, with no such pull, and there it is the subtonic instead. Read from
+		# the interval rather than the mode, so this stays right for any scale.
 		return "Leading Tone" if above == 11 else "Subtonic"
+	# The same reasoning for the two function names. Calling Lydian's raised
+	# fourth a subdominant would promise the reader a pull that is not there, so
+	# the cell is left empty and the colour carries the meaning on its own.
+	if FUNCTION_INTERVALS.has(degree) and above != FUNCTION_INTERVALS[degree]:
+		return ""
 	return DEGREE_NAMES[degree]
+
+
+## Whether `mode` still spells the perfect interval that `degree` is named for.
+##
+## Only the fourth and fifth degrees make such a claim; every other degree is
+## named for its position alone and is always present. Lydian raises the fourth
+## and Locrian flattens the fifth, and in those two cases the key a fifth away
+## on the circle has a tonic the scale does not even contain - so marking it
+## would point the reader at a note that is not in the mode.
+static func has_function_degree(mode: int, degree: int) -> bool:
+	if not FUNCTION_INTERVALS.has(degree):
+		return true
+	return MODE_INTERVALS[wrapi(mode, 0, 7)][degree] == FUNCTION_INTERVALS[degree]
 
 
 ## Semitones from `root_pc` up to `pc`, always ascending (0-11).

@@ -226,6 +226,25 @@ func _initialize() -> void:
 	failures += _expect("Mixolydian seventh is a subtonic",
 			MusicTheory.degree_name(mixo, MusicTheory.diatonic_chords(mixo, false)[6]), "Subtonic")
 
+	# Subdominant and Dominant name perfect intervals. Lydian raises the fourth
+	# and Locrian flattens the fifth, so those two cells must come back empty
+	# while every other mode still names both.
+	for probe_mode in KeyDef.Mode.values():
+		var probe := MusicTheory.with_mode(home, probe_mode)
+		var triads := MusicTheory.diatonic_chords(probe, false)
+		var want_fourth := "" if probe_mode == KeyDef.Mode.LYDIAN else "Subdominant"
+		var want_fifth := "" if probe_mode == KeyDef.Mode.LOCRIAN else "Dominant"
+		failures += _expect("%s fourth" % probe.display_name(),
+				MusicTheory.degree_name(probe, triads[3]), want_fourth)
+		failures += _expect("%s fifth" % probe.display_name(),
+				MusicTheory.degree_name(probe, triads[4]), want_fifth)
+		# The circle marks its IV and V wedges from this same predicate, so a
+		# name and a wedge can never disagree about whether the function is there.
+		failures += _expect("%s marks a subdominant wedge" % probe.display_name(),
+				str(MusicTheory.has_function_degree(probe_mode, 3)), str(want_fourth != ""))
+		failures += _expect("%s marks a dominant wedge" % probe.display_name(),
+				str(MusicTheory.has_function_degree(probe_mode, 4)), str(want_fifth != ""))
+
 	# The formula is derived from the interval table, so it is worth pinning to
 	# the textbook strings: if the two ever disagree, the table is wrong.
 	var expected_formula := [
