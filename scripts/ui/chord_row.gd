@@ -42,6 +42,10 @@ func _ready() -> void:
 	_keyboard.key_pressed.connect(_on_keyboard_key_pressed)
 	_play_in_order.pressed.connect(_on_play_in_order)
 	_play_together.pressed.connect(_on_play_together)
+	# Every row shows the held note, which turns the controller into a way of
+	# asking "which of these chords contains the note I am playing?".
+	AppState.held_notes_changed.connect(_keyboard.set_held)
+	_keyboard.set_held(AppState.held_notes)
 	# set_chord may have been called before the node was ready; apply it now.
 	if _chord != null:
 		_apply()

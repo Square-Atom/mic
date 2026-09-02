@@ -12,6 +12,7 @@ const DEGREE_COUNT := 7
 @onready var _key_info: Label = %KeyInfo
 @onready var _scale_notes: Label = %ScaleNotes
 @onready var _sevenths_toggle: CheckButton = %SeventhsToggle
+@onready var _midi_toggle: CheckButton = %MidiToggle
 @onready var _rows_box: VBoxContainer = %Rows
 
 var _rows: Array[ChordRow] = []
@@ -38,6 +39,8 @@ func _ready() -> void:
 
 	_sevenths_toggle.button_pressed = AppState.show_sevenths
 	_sevenths_toggle.toggled.connect(_on_sevenths_toggled)
+	_midi_toggle.button_pressed = AppState.midi_enabled
+	_midi_toggle.toggled.connect(AppState.set_midi_enabled)
 	AppState.key_changed.connect(_on_key_changed)
 	AppState.sevenths_changed.connect(_on_sevenths_changed)
 	_refresh()

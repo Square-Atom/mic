@@ -179,8 +179,25 @@ static func chord_family(chord: Chord) -> int:
 	return DEGREE_FAMILIES[wrapi(chord.degree, 0, 7)]
 
 
-## MIDI note of C4, the bottom of the range the app sounds and displays.
-const VOICING_BASE_MIDI := 60
+## The range the app displays and sounds: two octaves up from C4, ending on B5.
+## Stated here so the keyboard, the tone bank and MIDI folding all agree.
+const VOICING_BASE_MIDI := 60  # C4
+const RANGE_OCTAVES := 2
+const LOWEST_MIDI := VOICING_BASE_MIDI
+const HIGHEST_MIDI := VOICING_BASE_MIDI + RANGE_OCTAVES * 12 - 1  # B5
+
+
+## Shift a note by whole octaves until it lands on the keyboard.
+##
+## A controller spans far more than two octaves, so most of it would otherwise
+## do nothing. Folding keeps the pitch class, so a C anywhere on the controller
+## lights a C here - what is lost is only which octave it was played in.
+static func fold_into_range(midi: int) -> int:
+	while midi < LOWEST_MIDI:
+		midi += 12
+	while midi > HIGHEST_MIDI:
+		midi -= 12
+	return midi
 
 
 ## The chord as MIDI notes, in root position.

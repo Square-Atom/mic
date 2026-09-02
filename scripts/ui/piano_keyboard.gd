@@ -20,8 +20,8 @@ extends Control
 
 signal key_pressed(midi: int)
 
-const OCTAVES := 2
-const BASE_MIDI := 60  # C4
+const OCTAVES := MusicTheory.RANGE_OCTAVES
+const BASE_MIDI := MusicTheory.LOWEST_MIDI
 ## Semitone offset of each white key within an octave.
 const WHITE_OFFSETS := [0, 2, 4, 5, 7, 9, 11]
 const WHITE_PER_OCTAVE := 7
@@ -165,3 +165,10 @@ func set_key_labels(labels: Dictionary) -> void:
 func clear_key_labels() -> void:
 	for key in _all_keys:
 		key.label_text = ""
+
+
+## Outline the keys currently held down, as a set of MIDI notes. Drawn over
+## whatever the key is already showing, so a held chord tone stays a chord tone.
+func set_held(notes: Dictionary) -> void:
+	for key in _all_keys:
+		key.held = notes.has(key.midi)

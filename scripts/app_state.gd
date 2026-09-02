@@ -13,10 +13,16 @@ signal sevenths_changed(enabled: bool)
 ## Sound requests, in MIDI notes rather than pitch classes: what to play needs
 ## an octave, and the voicing is decided before it gets here.
 signal chord_activated(notes: PackedInt32Array, arpeggiate: bool)
-signal note_activated(midi: int)
+signal note_activated(midi: int, volume_db: float)
+## Which notes are being physically held down on a controller.
+signal held_notes_changed(held: Dictionary)
+signal midi_enabled_changed(enabled: bool)
 
 var selected_key: KeyDef = MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
 var show_sevenths: bool = false
+var midi_enabled: bool = true
+## Used as a set: the keys are MIDI notes currently held down.
+var held_notes := {}
 
 
 ## Select a key by circle position, mode and spelling. No-ops (and stays silent)
@@ -38,8 +44,31 @@ func set_show_sevenths(enabled: bool) -> void:
 
 ## Ask for a single note. Emitting through AppState rather than letting the UI
 ## talk to the audio layer directly is what keeps the two unaware of each other.
-func activate_note(midi: int) -> void:
-	note_activated.emit(midi)
+func activate_note(midi: int, volume_db: float = 0.0) -> void:
+	note_activated.emit(midi, volume_db)
+
+
+## Mark a note as physically held, so the keyboards can show it pressed. This
+## is separate from activate_note: sounding a note and holding a key down are
+## different events, and only one of them repeats while you keep your finger
+## on it.
+func set_note_held(midi: int, held: bool) -> void:
+	if held:
+		held_notes[midi] = true
+	else:
+		held_notes.erase(midi)
+	held_notes_changed.emit(held_notes)
+
+
+func set_midi_enabled(enabled: bool) -> void:
+	if enabled == midi_enabled:
+		return
+	midi_enabled = enabled
+	if not enabled and not held_notes.is_empty():
+		# Nothing will send the note-offs once input is closed.
+		held_notes.clear()
+		held_notes_changed.emit(held_notes)
+	midi_enabled_changed.emit(midi_enabled)
 
 
 ## Ask for a chord, either spread out in order or struck all at once.

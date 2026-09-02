@@ -20,6 +20,10 @@ enum State {
 
 ## Smallest legible label. Below this the text is dropped rather than drawn
 ## as an unreadable smudge - which is what happens on a narrow black key.
+## Outline drawn around a key being physically held on a controller.
+const HELD_BORDER_WIDTH := 2.5
+const HELD_INSET := 1.0
+
 const MIN_LABEL_FONT_SIZE := 8
 const LABEL_BOTTOM_MARGIN := 6.0
 
@@ -41,6 +45,15 @@ const LABEL_BOTTOM_MARGIN := 6.0
 var highlight_base: Color = Palette.ACCENT:
 	set(value):
 		highlight_base = value
+		queue_redraw()
+
+## Whether a controller key is down on this note. Independent of `_state`: a
+## key can be a chord tone and held at the same time.
+var held: bool = false:
+	set(value):
+		if value == held:
+			return
+		held = value
 		queue_redraw()
 
 var _state: int = State.NORMAL
@@ -119,6 +132,12 @@ func _draw() -> void:
 	var fill := _fill_color()
 	_style.bg_color = fill
 	draw_style_box(_style, Rect2(Vector2.ZERO, size))
+	if held:
+		var inset := HELD_BORDER_WIDTH * 0.5 + HELD_INSET
+		draw_rect(
+			Rect2(Vector2.ONE * inset, size - Vector2.ONE * inset * 2.0),
+			Palette.TEXT, false, HELD_BORDER_WIDTH
+		)
 	_draw_label()
 
 

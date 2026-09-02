@@ -55,10 +55,10 @@ func _process(_delta: float) -> void:
 	_warm_next += 1
 
 
-func play_note(midi: int) -> void:
+func play_note(midi: int, volume_db: float = 0.0) -> void:
 	if _playback == null:
 		return
-	_playback.play_stream(_bank.tone_for(midi))
+	_playback.play_stream(_bank.tone_for(midi), 0.0, volume_db)
 
 
 func _on_chord_activated(notes: PackedInt32Array, arpeggiate: bool) -> void:

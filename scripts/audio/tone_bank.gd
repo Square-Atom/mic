@@ -17,9 +17,9 @@ const MIX_RATE := 22050
 ## The fundamental is 34 dB down by this point, so a longer tail is inaudible
 ## and only costs render time.
 const DURATION := 1.5
-## Nothing is asked for outside this range - it is exactly what the keyboard shows.
-const LOWEST_MIDI := 60   # C4
-const HIGHEST_MIDI := 83  # B5
+## Nothing is asked for outside the app's range, which MusicTheory defines.
+const LOWEST_MIDI := MusicTheory.LOWEST_MIDI
+const HIGHEST_MIDI := MusicTheory.HIGHEST_MIDI
 
 ## Partials in the tone. Eight is safe at this mix rate: the highest note is
 ## just under 988 Hz, so its eighth harmonic stays well under the 11 kHz
