@@ -179,6 +179,28 @@ static func chord_family(chord: Chord) -> int:
 	return DEGREE_FAMILIES[wrapi(chord.degree, 0, 7)]
 
 
+## MIDI note of C4, the bottom of the range the app sounds and displays.
+const VOICING_BASE_MIDI := 60
+
+
+## The chord as MIDI notes, in root position.
+##
+## Each note is placed at the first octave ABOVE the one before it, so the
+## chord always sounds the way it is spelled instead of as an inversion. That
+## keeps everything inside C4-B5: the worst case is a seventh chord rooted on
+## B4, whose top note is A#5.
+static func chord_voicing(chord: Chord) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var previous := VOICING_BASE_MIDI + chord.root().pitch_class() - 1
+	for note in chord.notes:
+		var midi := VOICING_BASE_MIDI + note.pitch_class()
+		while midi <= previous:
+			midi += 12
+		out.append(midi)
+		previous = midi
+	return out
+
+
 ## The traditional name of each scale degree. Tonic, Subdominant and Dominant
 ## are not a separate idea from the rest - they are simply the three of these
 ## seven that also name a harmonic function.

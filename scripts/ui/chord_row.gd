@@ -17,9 +17,14 @@ const BOLD_FONT := preload("res://themes/font_bold.tres")
 @onready var _notes: Label = %NoteNames
 @onready var _degree_name: Label = %DegreeName
 @onready var _keyboard: PianoKeyboard = %Keyboard
+@onready var _play_in_order: PlayButton = %PlayInOrder
+@onready var _play_together: PlayButton = %PlayTogether
 
 var _chord: Chord = null
 var _key: KeyDef = null
+## The chord as MIDI notes, kept because both the keyboard and the buttons
+## need it and it is what the display and the sound agree on.
+var _voicing := PackedInt32Array()
 
 
 func _ready() -> void:
@@ -35,6 +40,8 @@ func _ready() -> void:
 	_symbol.add_theme_color_override("font_color", Palette.TEXT)
 
 	_keyboard.key_pressed.connect(_on_keyboard_key_pressed)
+	_play_in_order.pressed.connect(_on_play_in_order)
+	_play_together.pressed.connect(_on_play_together)
 	# set_chord may have been called before the node was ready; apply it now.
 	if _chord != null:
 		_apply()
@@ -55,14 +62,16 @@ func _apply() -> void:
 	_roman.text = _chord.roman_numeral()
 	_symbol.text = _chord.symbol()
 	_notes.text = _chord.note_names()
-	_keyboard.set_highlighted(
-		_chord.pitch_classes(), _chord.root().pitch_class(), _chord.seventh_pitch_class()
-	)
+	# One voicing drives both halves of the row, so what you see lit is exactly
+	# what you hear when you press a button.
+	_voicing = MusicTheory.chord_voicing(_chord)
+	var seventh := _voicing[3] if _chord.has_seventh() else -1
+	_keyboard.set_highlighted(_voicing, _voicing[0], seventh)
 	# Label straight from the chord's own notes so the keyboard shows the
 	# spelling the chord actually uses - B-flat in F major, never A-sharp.
 	var labels := {}
-	for note in _chord.notes:
-		labels[note.pitch_class()] = note.display_name()
+	for i in _chord.notes.size():
+		labels[_voicing[i]] = _chord.notes[i].display_name()
 	_keyboard.set_key_labels(labels)
 
 	# The numeral, its name and the note list take the chord's FAMILY colour,
@@ -103,18 +112,16 @@ func _function_color() -> Color:
 	return Palette.DEGREE_NEUTRAL
 
 
+func _on_keyboard_key_pressed(midi: int) -> void:
+	AppState.activate_note(midi)
 
-func _on_keyboard_key_pressed(pitch_class: int) -> void:
-	AppState.note_activated.emit(pitch_class)
+
+func _on_play_in_order() -> void:
+	AppState.activate_chord(_voicing, true)
 
 
-func _gui_input(event: InputEvent) -> void:
-	if _chord == null:
-		return
-	if event is InputEventMouseButton:
-		var mb := event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-			# Nothing listens to this yet - it is the hook a future audio layer
-			# plugs into without this row needing to know about it.
-			AppState.chord_activated.emit(_chord)
-			accept_event()
+func _on_play_together() -> void:
+	AppState.activate_chord(_voicing, false)
+
+
+

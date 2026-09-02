@@ -10,12 +10,10 @@ extends Node
 
 signal key_changed(key: KeyDef)
 signal sevenths_changed(enabled: bool)
-# Emitted for a future audio layer to consume; nothing listens yet, which is
-# the point of the seam - so the "unused" warning is expected here.
-@warning_ignore("unused_signal")
-signal chord_activated(chord: Chord)
-@warning_ignore("unused_signal")
-signal note_activated(pitch_class: int)
+## Sound requests, in MIDI notes rather than pitch classes: what to play needs
+## an octave, and the voicing is decided before it gets here.
+signal chord_activated(notes: PackedInt32Array, arpeggiate: bool)
+signal note_activated(midi: int)
 
 var selected_key: KeyDef = MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
 var show_sevenths: bool = false
@@ -36,6 +34,17 @@ func set_show_sevenths(enabled: bool) -> void:
 		return
 	show_sevenths = enabled
 	sevenths_changed.emit(show_sevenths)
+
+
+## Ask for a single note. Emitting through AppState rather than letting the UI
+## talk to the audio layer directly is what keeps the two unaware of each other.
+func activate_note(midi: int) -> void:
+	note_activated.emit(midi)
+
+
+## Ask for a chord, either spread out in order or struck all at once.
+func activate_chord(notes: PackedInt32Array, arpeggiate: bool) -> void:
+	chord_activated.emit(notes, arpeggiate)
 
 
 ## The chords of the current key, honouring the sevenths toggle.

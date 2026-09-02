@@ -8,7 +8,7 @@ extends Control
 ## that hover and input come free from the engine, and so a single key can be
 ## reused on its own wherever one is needed.
 
-signal pressed(pitch_class: int)
+signal pressed(midi: int)
 
 enum State {
 	NORMAL,      ## Resting.
@@ -23,7 +23,9 @@ enum State {
 const MIN_LABEL_FONT_SIZE := 8
 const LABEL_BOTTOM_MARGIN := 6.0
 
-@export var pitch_class: int = 0
+## The note this key sounds, as a MIDI number. The keyboard spans two octaves,
+## so a pitch class alone would not say which key this is.
+@export var midi: int = 60
 @export var is_black: bool = false
 
 ## Text drawn near the bottom of the key. Set from outside rather than derived
@@ -87,7 +89,7 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-			pressed.emit(pitch_class)
+			pressed.emit(midi)
 			accept_event()
 
 

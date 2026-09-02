@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/chord_row.gd" id="1_row"]
 [ext_resource type="PackedScene" path="res://scenes/piano_keyboard.tscn" id="2_keyboard"]
+[ext_resource type="Script" path="res://scripts/ui/play_button.gd" id="3_play"]
 
 [node name="ChordRow" type="PanelContainer"]
 offset_right = 760.0
@@ -14,30 +15,34 @@ theme_override_constants/separation = 16
 
 [node name="Roman" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 0)
+custom_minimum_size = Vector2(76, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "I"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ChordName" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(142, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "C"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="NoteNames" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(224, 0)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "C – E – G"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="DegreeName" type="Label" parent="HBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 15
@@ -49,5 +54,23 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 4
-white_key_width = 34.0
+white_key_width = 26.0
 key_height = 84.0
+
+[node name="PlayInOrder" type="Control" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 34)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Play root, third and fifth in order"
+script = ExtResource("3_play")
+mode = 0
+
+[node name="PlayTogether" type="Control" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 34)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "Play all notes at once"
+script = ExtResource("3_play")
+mode = 1
