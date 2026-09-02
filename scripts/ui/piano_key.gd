@@ -34,6 +34,13 @@ const LABEL_BOTTOM_MARGIN := 6.0
 		label_text = value
 		queue_redraw()
 
+## The colour family this key highlights in. Set by the keyboard, which in turn
+## takes it from whatever the caller decided the highlight means.
+var highlight_base: Color = Palette.ACCENT:
+	set(value):
+		highlight_base = value
+		queue_redraw()
+
 var _state: int = State.NORMAL
 var _hovered: bool = false
 ## One style box reused across redraws - building a new one every frame would
@@ -90,11 +97,11 @@ func _fill_color() -> Color:
 	var base: Color
 	match _state:
 		State.IS_ROOT:
-			base = Palette.KEY_ROOT
+			base = highlight_base
 		State.IS_SEVENTH:
 			base = Palette.KEY_SEVENTH
 		State.IN_CHORD:
-			base = Palette.KEY_CHORD_TONE
+			base = Palette.supporting_tone(highlight_base)
 		State.DIMMED:
 			base = (Palette.KEY_WHITE if not is_black else Palette.KEY_BLACK).darkened(0.35)
 		_:
@@ -110,13 +117,13 @@ func _draw() -> void:
 	var fill := _fill_color()
 	_style.bg_color = fill
 	draw_style_box(_style, Rect2(Vector2.ZERO, size))
-	_draw_label(fill)
+	_draw_label()
 
 
 ## Draw the note name near the bottom of the key, shrinking it until it fits the
 ## key's width. A black key is only about 60% as wide as a white one, so a fixed
 ## size that suits one would overflow the other.
-func _draw_label(fill: Color) -> void:
+func _draw_label() -> void:
 	if label_text.is_empty():
 		return
 	var font := get_theme_default_font()
@@ -133,4 +140,4 @@ func _draw_label(fill: Color) -> void:
 
 	var baseline := size.y - font.get_descent(font_size) - LABEL_BOTTOM_MARGIN
 	draw_string(font, Vector2((size.x - text_size.x) * 0.5, baseline), label_text,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Palette.contrast_text(fill))
+			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Palette.KEY_LABEL)

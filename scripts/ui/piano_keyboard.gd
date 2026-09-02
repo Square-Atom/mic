@@ -8,6 +8,7 @@ extends Control
 ## are these" can drop one in.
 ##
 ## Public contract:
+##   highlight_color                                     - the colour family to light in
 ##   set_highlighted(pitch_classes, root_pc, seventh_pc) - light these notes up
 ##   set_key_labels(labels)                              - name keys by pitch class
 ##   clear_highlights() / clear_key_labels()             - back to resting
@@ -48,6 +49,15 @@ const BLACK_HEIGHT_RATIO := 0.62
 		_layout_keys()
 
 
+## The colour this keyboard highlights in. The keyboard has no opinion about
+## what a highlight means, so the caller decides - which is what lets each chord
+## row colour its keys by the chord's role in the key.
+var highlight_color: Color = Palette.ACCENT:
+	set(value):
+		highlight_color = value
+		for key in _all_keys:
+			key.highlight_base = value
+
 var _white_keys: Array[PianoKey] = []
 var _black_keys: Array[PianoKey] = []
 var _all_keys: Array[PianoKey] = []
@@ -80,6 +90,7 @@ func _make_key(pitch_class: int, is_black: bool) -> PianoKey:
 	var key := PianoKey.new()
 	key.pitch_class = pitch_class
 	key.is_black = is_black
+	key.highlight_base = highlight_color
 	key.pressed.connect(_on_key_pressed)
 	add_child(key)
 	return key

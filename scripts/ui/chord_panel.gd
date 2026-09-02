@@ -28,7 +28,7 @@ func _ready() -> void:
 
 	_key_title.add_theme_color_override("font_color", Palette.TEXT)
 	_key_info.add_theme_color_override("font_color", Palette.TEXT_DIM)
-	_scale_notes.add_theme_color_override("font_color", Palette.RELATIVE)
+	_scale_notes.add_theme_color_override("font_color", Palette.TEXT)
 
 	# The seven rows are built once; only their contents change afterwards.
 	for i in DEGREE_COUNT:

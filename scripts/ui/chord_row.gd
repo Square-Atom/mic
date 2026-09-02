@@ -12,7 +12,6 @@ extends PanelContainer
 ## own, so the numeral column needs its own resource to stand out.
 const BOLD_FONT := preload("res://themes/font_bold.tres")
 
-@onready var _marker: Panel = %Marker
 @onready var _roman: Label = %Roman
 @onready var _symbol: Label = %ChordName
 @onready var _notes: Label = %NoteNames
@@ -20,8 +19,6 @@ const BOLD_FONT := preload("res://themes/font_bold.tres")
 
 var _chord: Chord = null
 var _key: KeyDef = null
-## Reused across updates rather than rebuilt, same reasoning as the panel style.
-var _marker_style: StyleBoxFlat
 
 
 func _ready() -> void:
@@ -37,10 +34,6 @@ func _ready() -> void:
 	_roman.add_theme_color_override("font_color", Palette.ACCENT)
 	_symbol.add_theme_color_override("font_color", Palette.TEXT)
 	_notes.add_theme_color_override("font_color", Palette.TEXT_DIM)
-
-	_marker_style = StyleBoxFlat.new()
-	_marker_style.set_corner_radius_all(3)
-	_marker.add_theme_stylebox_override("panel", _marker_style)
 
 	_keyboard.key_pressed.connect(_on_keyboard_key_pressed)
 	# set_chord may have been called before the node was ready; apply it now.
@@ -59,7 +52,7 @@ func set_chord(chord: Chord, key: KeyDef) -> void:
 
 
 func _apply() -> void:
-	_marker_style.bg_color = _marker_color()
+	_keyboard.highlight_color = _function_color()
 	_roman.text = _chord.roman_numeral()
 	_symbol.text = _chord.symbol()
 	_notes.text = _chord.note_names()
@@ -74,11 +67,10 @@ func _apply() -> void:
 	_keyboard.set_key_labels(labels)
 
 
-## The tonic, subdominant and dominant get a stripe in the very colour the
-## circle uses for them, so the same chord is recognisable on either side of
-## the screen. Everything else gets a transparent stripe, which keeps the
-## column width identical across rows without drawing anything.
-func _marker_color() -> Color:
+## The colour family this row works in. The tonic, subdominant and dominant
+## take the very colours the circle gives them, so one chord looks the same
+## wherever it appears; the remaining degrees share a quiet blue-grey.
+func _function_color() -> Color:
 	match MusicTheory.chord_function(_key, _chord):
 		MusicTheory.Function.TONIC:
 			return Palette.ACCENT
@@ -86,7 +78,8 @@ func _marker_color() -> Color:
 			return Palette.SUBDOMINANT
 		MusicTheory.Function.DOMINANT:
 			return Palette.DOMINANT
-	return Color.TRANSPARENT
+	return Palette.DEGREE_NEUTRAL
+
 
 
 func _on_keyboard_key_pressed(pitch_class: int) -> void:

@@ -1,4 +1,4 @@
-[gd_resource type="SystemFont" load_steps=2 format=3]
+[gd_resource type="SystemFont" format=3 uid="uid://bsb70bliwe4cn"]
 
 [sub_resource type="SystemFont" id="SystemFont_symbols"]
 font_names = PackedStringArray("Segoe UI Symbol", "Segoe UI Historic", "DejaVu Sans", "Arial Unicode MS")

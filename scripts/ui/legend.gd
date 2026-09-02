@@ -1,75 +1,43 @@
 class_name Legend
 extends HBoxContainer
 
-## A row of colour swatches with labels. Without one of these the new wedge and
-## key colours are just decoration - the legend is what turns them into
-## information a beginner can actually read.
+## The swatch row under the circle, naming what each wedge colour means.
+## Without it the wedge colours are decoration; with it they are information.
 ##
-## Two presets, because the same colours are used in two places and must be
-## explained in both. Entries are built from Palette so a colour is never
-## written down twice.
+## The keyboards used to carry a legend of their own. They no longer need one:
+## a row's colour comes from the chord's function and its shading from each
+## note's place in the chord, and both sit inches from the chord's own name,
+## roman numeral and note list. A legend that restates its neighbour is noise.
 
-enum Preset {
-	CIRCLE,  ## Explains the circle-of-fifths wedge colours.
-	PIANO,   ## Explains the piano key highlight colours.
-}
-
-@export var preset: Preset = Preset.CIRCLE
-@export var swatch_size: int = 11
-@export var label_font_size: int = 13
-
-## The "7th" swatch, hidden while the sevenths toggle is off - explaining a
-## colour that is nowhere on screen would only be confusing.
-var _seventh_entry: Control = null
+const SWATCH_SIZE := 11
+const LABEL_FONT_SIZE := 13
+const ENTRY_SEPARATION := 6
+const ROW_SEPARATION := 16
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 16)
-	for entry in _entries():
-		var node := _add_entry(entry[0], entry[1])
-		if preset == Preset.PIANO and entry[1] == "7th":
-			_seventh_entry = node
-	if _seventh_entry != null:
-		_seventh_entry.visible = AppState.show_sevenths
-		AppState.sevenths_changed.connect(_on_sevenths_changed)
+	add_theme_constant_override("separation", ROW_SEPARATION)
+	# Colours come straight from Palette, never re-typed as literals here.
+	_add_entry(Palette.ACCENT, "Tonic (I)")
+	_add_entry(Palette.SUBDOMINANT, "Subdominant (IV)")
+	_add_entry(Palette.DOMINANT, "Dominant (V)")
+	_add_entry(Palette.RELATIVE, "Relative key")
 
 
-func _on_sevenths_changed(enabled: bool) -> void:
-	_seventh_entry.visible = enabled
-
-
-func _entries() -> Array:
-	match preset:
-		Preset.PIANO:
-			return [
-				[Palette.KEY_ROOT, "Root"],
-				[Palette.KEY_CHORD_TONE, "Chord tone"],
-				[Palette.KEY_SEVENTH, "7th"],
-			]
-		_:
-			return [
-				[Palette.ACCENT, "Tonic (I)"],
-				[Palette.SUBDOMINANT, "Subdominant (IV)"],
-				[Palette.DOMINANT, "Dominant (V)"],
-				[Palette.RELATIVE, "Relative key"],
-			]
-
-
-func _add_entry(color: Color, text: String) -> Control:
+func _add_entry(color: Color, text: String) -> void:
 	var entry := HBoxContainer.new()
-	entry.add_theme_constant_override("separation", 6)
+	entry.add_theme_constant_override("separation", ENTRY_SEPARATION)
 
 	var swatch := ColorRect.new()
 	swatch.color = color
-	swatch.custom_minimum_size = Vector2(swatch_size, swatch_size)
+	swatch.custom_minimum_size = Vector2(SWATCH_SIZE, SWATCH_SIZE)
 	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", label_font_size)
+	label.add_theme_font_size_override("font_size", LABEL_FONT_SIZE)
 	label.add_theme_color_override("font_color", Palette.TEXT_DIM)
 
 	entry.add_child(swatch)
 	entry.add_child(label)
 	add_child(entry)
-	return entry

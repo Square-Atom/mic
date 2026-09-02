@@ -1,8 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://b1a3d58epq00o"]
 
-[ext_resource type="Script" path="res://scripts/ui/piano_keyboard.gd" id="1_keyboard"]
+[ext_resource type="Script" uid="uid://yns4j3cc4qtv" path="res://scripts/ui/piano_keyboard.gd" id="1_keyboard"]
 
-[node name="PianoKeyboard" type="Control"]
+[node name="PianoKeyboard" type="Control" unique_id=639557302]
+custom_minimum_size = Vector2(168, 66)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
