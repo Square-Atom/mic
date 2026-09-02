@@ -123,41 +123,67 @@ func _on_key_changed(_key: KeyDef) -> void:
 ## the three wedges touching each other, wherever the selection happens to be.
 func _refresh_states() -> void:
 	var key := AppState.selected_key
+	# The two rings exist to show major against its relative minor. In any other
+	# mode that pairing is not what is on screen, and the second ring would just
+	# be twelve keys with no bearing on the one selected - so it is hidden.
+	var single_ring := not (key.is_major() or key.is_minor())
 	for segment in _segments:
-		segment.set_segment_state(_state_for(segment, key))
+		var state := _state_for(segment, key)
+		var companion := _is_companion(segment, key)
+		# An off-ring wedge stays hidden unless it is carrying something. A
+		# mode's parent always lives on the major ring, whichever ring the key
+		# was reached from, and hiding it would mark a wedge nobody can see.
+		segment.visible = not single_ring \
+				or segment.mode == key.circle_ring \
+				or state != CircleSegment.State.NORMAL \
+				or companion
+		segment.set_segment_state(state)
+		segment.set_companion(companion)
 	queue_redraw()
 
 
-## Which ring stands for a key. Minor has its own; every other mode is shown by
-## the major wedge, because the major key at that position is the one whose
-## signature the mode borrows. Picking Mixolydian on C therefore lights F - the
-## highlight moving is the thing worth noticing.
-static func _ring_mode(key: KeyDef) -> int:
-	return KeyDef.Mode.MINOR if key.is_minor() else KeyDef.Mode.MAJOR
-
-
 func _state_for(segment: CircleSegment, key: KeyDef) -> int:
-	var ring := _ring_mode(key)
+	# The wedge a key is drawn on is remembered, not derived from its mode, so
+	# switching mode leaves the circle exactly where it was.
+	var ring: int = key.circle_ring
 	if segment.circle_position == key.circle_position:
 		# The other spelling of the selected position is a different key, so it
 		# lights up no more than any other wedge.
 		if segment.use_alt != key.use_alt_spelling:
 			return CircleSegment.State.NORMAL
-		# Same position, other ring: the relative major/minor. They share a key
-		# signature, which is exactly why they sit at the same clock position.
 		if segment.mode == ring:
 			return CircleSegment.State.TONIC
-		return CircleSegment.State.RELATIVE
 	# V and IV are marked only on the selection's own ring, so a major key's
 	# dominant reads as the major chord it actually is.
-	if segment.mode != ring:
-		return CircleSegment.State.NORMAL
-	var steps := wrapi(segment.circle_position - key.circle_position, 0, 12)
-	if steps != 1 and steps != 11:
-		return CircleSegment.State.NORMAL
-	if not _matches_spelling(segment, key):
-		return CircleSegment.State.NORMAL
-	return CircleSegment.State.DOMINANT if steps == 1 else CircleSegment.State.SUBDOMINANT
+	if segment.mode == ring:
+		var steps := wrapi(segment.circle_position - key.circle_position, 0, 12)
+		if (steps == 1 or steps == 11) and _matches_spelling(segment, key):
+			return CircleSegment.State.DOMINANT if steps == 1 \
+					else CircleSegment.State.SUBDOMINANT
+	return CircleSegment.State.NORMAL
+
+
+## The key worth naming alongside this one, which the blue wedge marks.
+##
+## A plain major or minor key - one whose mode IS the ring it sits on - points
+## at its relative on the other ring of the same wedge, which is the pairing the
+## two rings exist to show. Every other mode points at the major key whose
+## signature it borrows, so the wedge agrees with the "same notes as" line in
+## the panel.
+func _is_companion(segment: CircleSegment, key: KeyDef) -> bool:
+	if key.mode == key.circle_ring:
+		var other := KeyDef.Mode.MAJOR if key.circle_ring == KeyDef.Mode.MINOR \
+				else KeyDef.Mode.MINOR
+		return segment.circle_position == key.circle_position \
+				and segment.mode == other \
+				and segment.use_alt == key.use_alt_spelling
+	var parent := MusicTheory.parent_major(key)
+	# Matched against the PARENT's spelling rather than the key's. C-flat Dorian
+	# is an alternative spelling, but its parent sits at a position with no
+	# second spelling at all, so comparing the key's flag would never match.
+	return segment.circle_position == parent.circle_position \
+			and segment.mode == KeyDef.Mode.MAJOR \
+			and segment.use_alt == parent.use_alt_spelling
 
 
 ## Where a neighbouring position offers two spellings, pick the one that leans

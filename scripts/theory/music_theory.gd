@@ -23,8 +23,17 @@ const MODE_INTERVALS := [
 	[0, 1, 3, 5, 6, 8, 10],  # Locrian
 ]
 
+## The names keys are usually called by, and the ones used in headings.
 const MODE_NAMES := [
 	"Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Minor", "Locrian",
+]
+
+## The classical names. Only two of them differ from the list above: major and
+## minor are simply Ionian and Aeolian under older names, and showing both makes
+## that plain instead of leaving the seven looking like five modes plus two
+## outsiders.
+const MODE_CLASSICAL_NAMES := [
+	"Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian",
 ]
 
 ## How far each mode's tonic sits from its parent major's tonic, in fifths -
@@ -96,35 +105,48 @@ static func has_alt_spelling(position: int) -> bool:
 	return MAJOR_ALT_TONICS.has(wrapi(position, 0, 12))
 
 
-## Build a KeyDef for a circle position, mode and spelling.
+## Build a KeyDef for a wedge on the circle. `ring` is MAJOR for the outer ring
+## or MINOR for the inner, and it is also the key's starting mode.
 ##
-## `use_alt` is the whole mechanism behind C# major being a different key from
-## Db major: the tonic Note carries the spelling and scale_notes() derives
+## `use_alt` is the mechanism behind C# major being a different key from Db
+## major: the tonic Note carries the spelling and scale_notes() derives
 ## everything from it, so asking for C# yields C# D# E# F# G# A# B# with no
 ## special-casing anywhere downstream.
-static func key_at(position: int, mode: int, use_alt: bool = false) -> KeyDef:
+static func key_at(position: int, ring: int, use_alt: bool = false) -> KeyDef:
 	position = wrapi(position, 0, 12)
 	use_alt = use_alt and has_alt_spelling(position)
-	return KeyDef.new(mode_tonic(position, mode, use_alt), mode, position, use_alt)
+	return KeyDef.new(mode_tonic(position, ring, use_alt), ring, position, use_alt, ring)
 
 
-## The circle position that keeps `key`'s tonic where it is while changing its
-## mode - which is what a composer means by "make this bit Mixolydian".
+## The same key re-flavoured into another mode.
 ##
-## The tonic stays put and the KEY SIGNATURE moves: C Mixolydian is C sitting
-## in F major's signature. Both modes are measured back to the parent major in
-## fifths, and the difference is how far round the circle to step.
-static func position_for_mode(key: KeyDef, mode: int) -> int:
-	var ionian_position: int = key.circle_position + MODE_FIFTHS_OFFSET[key.mode]
-	return wrapi(ionian_position - MODE_FIFTHS_OFFSET[wrapi(mode, 0, 7)], 0, 12)
+## Neither the tonic nor the wedge moves: C Dorian is still C, drawn on C's
+## wedge, with F and G still either side of it. What changes is the set of
+## notes above that tonic - and therefore the key signature, which is why
+## signature_of() works it out rather than reading it off the position.
+static func with_mode(key: KeyDef, mode: int) -> KeyDef:
+	return KeyDef.new(key.tonic, mode, key.circle_position, key.use_alt_spelling, key.circle_ring)
 
 
 ## Signed key signature of a specific key: positive sharps, negative flats.
-## Honours the spelling, so C# major reports 7 sharps where Db reports 5 flats.
+##
+## The wedge fixes a starting signature and the mode shifts it. One step round
+## the circle is one fifth and one accidental, so the shift is the difference
+## between the two modes' distances from their parent major: C on the major
+## wedge has none, while C Dorian has two flats, because a Dorian tonic sits
+## two fifths above its parent's.
 static func signature_of(key: KeyDef) -> int:
+	var base: int = SIGNATURES[wrapi(key.circle_position, 0, 12)]
 	if key.use_alt_spelling and ALT_SIGNATURES.has(key.circle_position):
-		return ALT_SIGNATURES[key.circle_position]
-	return SIGNATURES[wrapi(key.circle_position, 0, 12)]
+		base = ALT_SIGNATURES[key.circle_position]
+	return base + MODE_FIFTHS_OFFSET[key.circle_ring] - MODE_FIFTHS_OFFSET[key.mode]
+
+
+## The major key whose signature this mode borrows. For a plain major or minor
+## key that is the wedge itself, or its relative.
+static func parent_major(key: KeyDef) -> KeyDef:
+	var steps: int = MODE_FIFTHS_OFFSET[key.circle_ring] - MODE_FIFTHS_OFFSET[key.mode]
+	return key_at(key.circle_position + steps, KeyDef.Mode.MAJOR, key.use_alt_spelling)
 
 
 ## Which accidental bends the natural letter `letter` onto `target_pc`.

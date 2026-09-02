@@ -7,6 +7,9 @@ signal pressed
 
 @onready var _label: Label = %ModeName
 
+## Held until the node is in the tree: the bar builds a chip, names it and only
+## then parents it, so the label does not exist yet at that point.
+var _pending_name := ""
 var _hovered := false
 var _active := false
 var _style: StyleBoxFlat
@@ -25,11 +28,16 @@ func _ready() -> void:
 	add_theme_stylebox_override("panel", _style)
 	mouse_entered.connect(func(): _hovered = true; _restyle())
 	mouse_exited.connect(func(): _hovered = false; _restyle())
+	if not _pending_name.is_empty():
+		_label.text = _pending_name
 	_restyle()
 
 
+## Safe to call before the chip has entered the tree.
 func set_mode_name(text: String) -> void:
-	_label.text = text
+	_pending_name = text
+	if is_node_ready():
+		_label.text = text
 
 
 func set_active(active: bool) -> void:

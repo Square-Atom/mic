@@ -85,6 +85,4 @@ func _companion_text(key: KeyDef) -> String:
 		var relative_major := MusicTheory.key_at(
 				key.circle_position, KeyDef.Mode.MAJOR, key.use_alt_spelling)
 		return "Relative major: " + relative_major.display_name()
-	var parent := MusicTheory.key_at(
-			key.circle_position, KeyDef.Mode.MAJOR, key.use_alt_spelling)
-	return "Same notes as " + parent.display_name()
+	return "Same notes as " + MusicTheory.parent_major(key).display_name()

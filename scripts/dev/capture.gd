@@ -14,8 +14,8 @@ const SHOTS := [
 	["a_minor_sevenths", 0, KeyDef.Mode.MINOR, true, false],
 	["db_major_triads", 7, KeyDef.Mode.MAJOR, false, false],
 	["csharp_major_triads", 7, KeyDef.Mode.MAJOR, false, true],
-	["c_mixolydian", 11, KeyDef.Mode.MIXOLYDIAN, false, false],
-	["d_dorian", 0, KeyDef.Mode.DORIAN, false, false],
+	["c_mixolydian", 0, KeyDef.Mode.MIXOLYDIAN, false, false],
+	["c_dorian", 0, KeyDef.Mode.DORIAN, false, false],
 ]
 
 var _frames := 0
@@ -30,7 +30,11 @@ func _ready() -> void:
 
 func _apply_shot() -> void:
 	var shot: Array = SHOTS[_shot]
-	AppState.select_key(shot[1], shot[2], shot[4])
+	# A mode is reached by picking a wedge and re-flavouring it, exactly as the
+	# selector does, so the capture exercises the same path the UI uses.
+	var ring: int = KeyDef.Mode.MINOR if shot[2] == KeyDef.Mode.MINOR else KeyDef.Mode.MAJOR
+	AppState.select_key(shot[1], ring, shot[4])
+	AppState.set_mode(shot[2])
 	AppState.set_show_sevenths(shot[3])
 
 

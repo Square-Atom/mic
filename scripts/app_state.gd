@@ -27,11 +27,35 @@ var held_notes := {}
 
 ## Select a key by circle position, mode and spelling. No-ops (and stays silent)
 ## if the same key is picked twice, so listeners never rebuild for nothing.
-func select_key(position: int, mode: int, use_alt: bool = false) -> void:
-	var next := MusicTheory.key_at(position, mode, use_alt)
+func select_key(position: int, ring: int, use_alt: bool = false) -> void:
+	var next := MusicTheory.key_at(position, ring, use_alt)
+	# Picking a wedge moves the tonic; it does not undo the mode. The exception
+	# is plain major and minor, where the two rings ARE the two modes, so
+	# clicking one is how you ask for it.
+	if not (selected_key.is_major() or selected_key.is_minor()):
+		next = MusicTheory.with_mode(next, selected_key.mode)
 	if next.equals(selected_key):
 		return
 	selected_key = next
+	key_changed.emit(selected_key)
+
+
+## Re-flavour the current key. The wedge POSITION never moves - that is the
+## whole point of the mode selector - but the ring follows the mode.
+##
+## Only Aeolian belongs on the inner ring; that ring exists to show relative
+## minors and is hidden in every other mode. So a key sitting on it moves out to
+## its relative major first - the same clock position, one ring out - rather
+## than being left highlighted on a ring that is no longer drawn. Ionian does
+## the same in reverse, which is how Am becomes C Major rather than being
+## stranded on the Am wedge.
+func set_mode(mode: int) -> void:
+	if mode == selected_key.mode:
+		return
+	var ring: int = KeyDef.Mode.MINOR if mode == KeyDef.Mode.MINOR else KeyDef.Mode.MAJOR
+	var wedge := MusicTheory.key_at(
+			selected_key.circle_position, ring, selected_key.use_alt_spelling)
+	selected_key = MusicTheory.with_mode(wedge, mode)
 	key_changed.emit(selected_key)
 
 

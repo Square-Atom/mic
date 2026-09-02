@@ -199,9 +199,11 @@ func _initialize() -> void:
 	var expected_parent := ["C", "B\u266d", "A\u266d", "G", "F", "E\u266d", "D\u266d"]
 	var home := MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
 	for mode in MusicTheory.MODE_NAMES.size():
-		var position := MusicTheory.position_for_mode(home, mode)
-		var key := MusicTheory.key_at(position, mode)
-		var parent := MusicTheory.key_at(position, KeyDef.Mode.MAJOR).tonic.display_name()
+		var key := MusicTheory.with_mode(home, mode)
+		var parent := MusicTheory.parent_major(key).tonic.display_name()
+		if key.circle_position != home.circle_position:
+			print("  FAIL %s moved off C's wedge" % key.display_name())
+			failures += 1
 		if key.tonic.pitch_class() != 0:
 			print("  FAIL %s moved off C" % key.display_name())
 			failures += 1
@@ -220,8 +222,7 @@ func _initialize() -> void:
 	failures += _expect("C Mixolydian chords", _mode_syms(KeyDef.Mode.MIXOLYDIAN),
 			"C Dm E\u00b0 F Gm Am B\u266d")
 	# Mixolydian's seventh sits a whole tone below the tonic, so it does not lead.
-	var mixo := MusicTheory.key_at(
-			MusicTheory.position_for_mode(home, KeyDef.Mode.MIXOLYDIAN), KeyDef.Mode.MIXOLYDIAN)
+	var mixo := MusicTheory.with_mode(home, KeyDef.Mode.MIXOLYDIAN)
 	failures += _expect("Mixolydian seventh is a subtonic",
 			MusicTheory.degree_name(mixo, MusicTheory.diatonic_chords(mixo, false)[6]), "Subtonic")
 
@@ -273,8 +274,7 @@ func _alt_syms(slot: int, mode: int) -> String:
 
 ## Chord symbols for a mode built on the same tonic as C major.
 func _mode_syms(mode: int) -> String:
-	var home := MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
-	var key := MusicTheory.key_at(MusicTheory.position_for_mode(home, mode), mode)
+	var key := MusicTheory.with_mode(MusicTheory.key_at(0, KeyDef.Mode.MAJOR), mode)
 	var parts := PackedStringArray()
 	for c in MusicTheory.diatonic_chords(key, false):
 		parts.append(c.symbol())

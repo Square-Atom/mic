@@ -18,7 +18,6 @@ enum State {
 	TONIC,        ## The key the user picked - home.
 	DOMINANT,     ## Its V, one step clockwise. The chord that pulls back home.
 	SUBDOMINANT,  ## Its IV, one step anticlockwise. The chord that moves away.
-	RELATIVE,     ## Its relative major/minor - same notes, different home.
 }
 
 ## How far the drawn wedge is pulled in from its true hit area, so neighbouring
@@ -28,6 +27,17 @@ const DRAW_ANGLE_PAD := 0.010
 const DRAW_RADIUS_PAD := 2.0
 ## Arc tessellation step. 2 degrees is smooth at any size we render at.
 const ARC_STEP := 0.0349
+
+## The related key is drawn as an inner outline rather than a fill, because a
+## wedge can be two things at once - in Lydian the parent IS the dominant - and
+## a second fill colour would have to fight the first for the same pixels.
+##
+## The stroke is centred on its path, so the path is inset by half the width
+## plus the gap. Expressing it as a GAP is what makes the tuning obvious: it is
+## the bare space left outside the outline, and at zero the outline sits flush
+## to the wedge's edge with no rim of fill showing past it.
+const COMPANION_GAP := 0.0
+const COMPANION_WIDTH := 5.0
 
 var circle_position: int = 0
 var mode: int = KeyDef.Mode.MAJOR
@@ -48,6 +58,9 @@ var outer_radius: float = 0.0
 var start_angle: float = 0.0
 var end_angle: float = 0.0
 
+## True when this wedge is also the related key. Kept apart from `_state` so
+## a wedge can carry a function AND the relation at the same time.
+var _is_companion: bool = false
 var _state: int = State.NORMAL
 var _hovered: bool = false
 
@@ -117,19 +130,23 @@ func _fill_color() -> Color:
 			return Palette.DOMINANT
 		State.SUBDOMINANT:
 			return Palette.SUBDOMINANT
-		State.RELATIVE:
-			return Palette.RELATIVE
 		_:
 			return Palette.RING_MAJOR if mode == KeyDef.Mode.MAJOR else Palette.RING_MINOR
 
 
 ## Tessellate the wedge into a polygon: out along the outer arc, back along the
-## inner one. Padding is applied here only, never to the hit test.
-func _build_polygon() -> PackedVector2Array:
-	var a0 := start_angle + DRAW_ANGLE_PAD
-	var a1 := end_angle - DRAW_ANGLE_PAD
-	var r0 := inner_radius + DRAW_RADIUS_PAD
-	var r1 := maxf(r0 + 1.0, outer_radius - DRAW_RADIUS_PAD)
+## inner one. Padding is applied here only, never to the hit test. `inset` pulls
+## the whole shape further in, which is how the companion outline is drawn
+## inside the fill rather than on top of its edge.
+func _build_polygon(inset: float = 0.0) -> PackedVector2Array:
+	var mid_radius := (inner_radius + outer_radius) * 0.5
+	# A linear inset has to become an angular one at the arc's radius, or the
+	# ends of the wedge would pull in by a different amount from its sides.
+	var angle_inset := inset / maxf(1.0, mid_radius)
+	var a0 := start_angle + DRAW_ANGLE_PAD + angle_inset
+	var a1 := end_angle - DRAW_ANGLE_PAD - angle_inset
+	var r0 := inner_radius + DRAW_RADIUS_PAD + inset
+	var r1 := maxf(r0 + 1.0, outer_radius - DRAW_RADIUS_PAD - inset)
 	var steps := maxi(2, int(ceil((a1 - a0) / ARC_STEP)))
 	var points := PackedVector2Array()
 	for i in steps + 1:
@@ -141,6 +158,13 @@ func _build_polygon() -> PackedVector2Array:
 	return points
 
 
+func set_companion(is_companion: bool) -> void:
+	if is_companion == _is_companion:
+		return
+	_is_companion = is_companion
+	queue_redraw()
+
+
 func _draw() -> void:
 	if outer_radius <= 0.0:
 		return
@@ -149,6 +173,12 @@ func _draw() -> void:
 	draw_colored_polygon(points, fill)
 	if _hovered:
 		draw_colored_polygon(points, Palette.HOVER_TINT)
+	if _is_companion:
+		# Drawn inside the fill, so a wedge that is both a function and the
+		# related key shows the function's colour with this ring inside it.
+		var outline := _build_polygon(COMPANION_GAP + COMPANION_WIDTH * 0.5)
+		outline.append(outline[0])
+		draw_polyline(outline, Palette.RELATIVE, COMPANION_WIDTH, true)
 
 	var font := get_theme_default_font()
 	if font == null:
