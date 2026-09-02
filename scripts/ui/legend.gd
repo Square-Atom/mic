@@ -9,8 +9,8 @@ extends HBoxContainer
 ## note's place in the chord, and both sit inches from the chord's own name,
 ## roman numeral and note list. A legend that restates its neighbour is noise.
 
-const SWATCH_SIZE := 11
-const LABEL_FONT_SIZE := 13
+const SWATCH_SIZE := 13
+const LABEL_FONT_SIZE := 16
 const ENTRY_SEPARATION := 6
 const ROW_SEPARATION := 16
 
@@ -21,15 +21,22 @@ func _ready() -> void:
 	_add_entry(Palette.ACCENT, "Tonic (I)")
 	_add_entry(Palette.SUBDOMINANT, "Subdominant (IV)")
 	_add_entry(Palette.DOMINANT, "Dominant (V)")
-	_add_entry(Palette.RELATIVE, "Relative key")
+	# Outlined, because the circle marks the related key with an inner border
+	# rather than a fill - a solid swatch here would describe the wrong thing.
+	_add_entry(Palette.RELATIVE, "Relative key", true)
 
 
-func _add_entry(color: Color, text: String) -> void:
+func _add_entry(color: Color, text: String, outlined: bool = false) -> void:
 	var entry := HBoxContainer.new()
 	entry.add_theme_constant_override("separation", ENTRY_SEPARATION)
 
-	var swatch := ColorRect.new()
-	swatch.color = color
+	var swatch := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color, 0.0) if outlined else color
+	if outlined:
+		style.set_border_width_all(2)
+		style.border_color = color
+	swatch.add_theme_stylebox_override("panel", style)
 	swatch.custom_minimum_size = Vector2(SWATCH_SIZE, SWATCH_SIZE)
 	swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 

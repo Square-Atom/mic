@@ -9,8 +9,54 @@ extends RefCounted
 ## these is just "some other key", and the same is true of the chord list.
 enum Function { NONE, TONIC, SUBDOMINANT, DOMINANT }
 
-const MAJOR_INTERVALS := [0, 2, 4, 5, 7, 9, 11]
-const NATURAL_MINOR_INTERVALS := [0, 2, 3, 5, 7, 8, 10]
+## Semitones above the tonic for each degree, one row per mode. Every row is
+## the major scale rotated to start on a different degree, which is exactly
+## what a mode is - written out rather than computed so each is readable and
+## checkable at a glance.
+const MODE_INTERVALS := [
+	[0, 2, 4, 5, 7, 9, 11],  # Major / Ionian
+	[0, 2, 3, 5, 7, 9, 10],  # Dorian
+	[0, 1, 3, 5, 7, 8, 10],  # Phrygian
+	[0, 2, 4, 6, 7, 9, 11],  # Lydian
+	[0, 2, 4, 5, 7, 9, 10],  # Mixolydian
+	[0, 2, 3, 5, 7, 8, 10],  # Minor / Aeolian
+	[0, 1, 3, 5, 6, 8, 10],  # Locrian
+]
+
+## The names keys are usually called by, and the ones used in headings.
+const MODE_NAMES := [
+	"Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Minor", "Locrian",
+]
+
+## The classical names. Only two of them differ from the list above: major and
+## minor are simply Ionian and Aeolian under older names, and showing both makes
+## that plain instead of leaving the seven looking like five modes plus two
+## outsiders.
+const MODE_CLASSICAL_NAMES := [
+	"Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian",
+]
+
+## How far each mode's tonic sits from its parent major's tonic, in fifths -
+## which is to say, how far round the circle. Reading the degrees in
+## circle-of-fifths order gives I=0, V=+1, II=+2, VI=+3, III=+4, VII=+5, IV=-1.
+## This is what lets the mode selector hold a tonic still and move the
+## signature instead.
+const MODE_FIFTHS_OFFSET := [0, 2, 4, -1, 1, 3, 5]
+
+## What each mode sounds like. The formula is not written here - see
+## mode_formula(), which reads it off the interval table so the two can never
+## drift apart.
+const MODE_DESCRIPTIONS := [
+	"The standard major scale; sounds bright, stable, and happy.",
+	"A minor-type scale with a raised 6th degree; sounds jazzy, mystical, or bittersweet.",
+	"A minor-type scale with a lowered 2nd degree; sounds dark, Spanish, or exotic.",
+	"A major-type scale with a raised 4th degree; sounds dreamy, floating, and magical.",
+	"A major-type scale with a lowered 7th degree; sounds bluesy, classic rock, and laid-back.",
+	"The standard natural minor scale; sounds sad, serious, and pensive.",
+	"A diminished scale with lowered 5th and 2nd degrees; sounds tense, unstable, and dark.",
+]
+
+
 
 ## The 12 circle positions, clockwise from C at the top. Each entry is the
 ## major tonic as [letter, accidental]; every other fact about the position
@@ -52,14 +98,19 @@ static func major_tonic(position: int) -> Note:
 	return Note.new(entry[0], entry[1])
 
 
-## The relative minor tonic at a circle position. A relative minor sits a minor
-## third below its major, which is always two letter names down - so the letter
-## is found by stepping back two, and the accidental by matching the pitch class.
-static func minor_tonic(position: int) -> Note:
-	var maj := major_tonic(position)
-	var letter := wrapi(maj.letter - 2, 0, 7)
-	var target_pc := wrapi(maj.pitch_class() - 3, 0, 12)
-	return Note.new(letter, _accidental_for(letter, target_pc))
+## The tonic of a mode built on a circle position.
+##
+## A mode starts on a degree of its parent major scale, and Mode's values ARE
+## those degree numbers - so this is a lookup into the parent's scale rather
+## than a separate calculation. Minor comes out as the sixth degree, which is
+## the relative minor, exactly as before.
+static func mode_tonic(position: int, mode: int, use_alt: bool = false) -> Note:
+	var parent_tonic := major_tonic(position)
+	if use_alt and has_alt_spelling(position):
+		var entry: Array = MAJOR_ALT_TONICS[wrapi(position, 0, 12)]
+		parent_tonic = Note.new(entry[0], entry[1])
+	var parent := KeyDef.new(parent_tonic, KeyDef.Mode.MAJOR, position, use_alt)
+	return scale_notes(parent)[wrapi(mode, 0, 7)]
 
 
 ## Does this position carry two equally standard names?
@@ -67,31 +118,48 @@ static func has_alt_spelling(position: int) -> bool:
 	return MAJOR_ALT_TONICS.has(wrapi(position, 0, 12))
 
 
-## Build a KeyDef for a circle position, mode and spelling.
+## Build a KeyDef for a wedge on the circle. `ring` is MAJOR for the outer ring
+## or MINOR for the inner, and it is also the key's starting mode.
 ##
-## `use_alt` is the whole mechanism behind C# major being a different key from
-## Db major: the tonic Note carries the spelling and scale_notes() derives
+## `use_alt` is the mechanism behind C# major being a different key from Db
+## major: the tonic Note carries the spelling and scale_notes() derives
 ## everything from it, so asking for C# yields C# D# E# F# G# A# B# with no
 ## special-casing anywhere downstream.
-static func key_at(position: int, mode: int, use_alt: bool = false) -> KeyDef:
+static func key_at(position: int, ring: int, use_alt: bool = false) -> KeyDef:
 	position = wrapi(position, 0, 12)
 	use_alt = use_alt and has_alt_spelling(position)
-	var tonic: Note
-	if use_alt:
-		var table: Dictionary = MAJOR_ALT_TONICS if mode == KeyDef.Mode.MAJOR else MINOR_ALT_TONICS
-		var entry: Array = table[position]
-		tonic = Note.new(entry[0], entry[1])
-	else:
-		tonic = major_tonic(position) if mode == KeyDef.Mode.MAJOR else minor_tonic(position)
-	return KeyDef.new(tonic, mode, position, use_alt)
+	return KeyDef.new(mode_tonic(position, ring, use_alt), ring, position, use_alt, ring)
+
+
+## The same key re-flavoured into another mode.
+##
+## Neither the tonic nor the wedge moves: C Dorian is still C, drawn on C's
+## wedge, with F and G still either side of it. What changes is the set of
+## notes above that tonic - and therefore the key signature, which is why
+## signature_of() works it out rather than reading it off the position.
+static func with_mode(key: KeyDef, mode: int) -> KeyDef:
+	return KeyDef.new(key.tonic, mode, key.circle_position, key.use_alt_spelling, key.circle_ring)
 
 
 ## Signed key signature of a specific key: positive sharps, negative flats.
-## Honours the spelling, so C# major reports 7 sharps where Db reports 5 flats.
+##
+## The wedge fixes a starting signature and the mode shifts it. One step round
+## the circle is one fifth and one accidental, so the shift is the difference
+## between the two modes' distances from their parent major: C on the major
+## wedge has none, while C Dorian has two flats, because a Dorian tonic sits
+## two fifths above its parent's.
 static func signature_of(key: KeyDef) -> int:
+	var base: int = SIGNATURES[wrapi(key.circle_position, 0, 12)]
 	if key.use_alt_spelling and ALT_SIGNATURES.has(key.circle_position):
-		return ALT_SIGNATURES[key.circle_position]
-	return SIGNATURES[wrapi(key.circle_position, 0, 12)]
+		base = ALT_SIGNATURES[key.circle_position]
+	return base + MODE_FIFTHS_OFFSET[key.circle_ring] - MODE_FIFTHS_OFFSET[key.mode]
+
+
+## The major key whose signature this mode borrows. For a plain major or minor
+## key that is the wedge itself, or its relative.
+static func parent_major(key: KeyDef) -> KeyDef:
+	var steps: int = MODE_FIFTHS_OFFSET[key.circle_ring] - MODE_FIFTHS_OFFSET[key.mode]
+	return key_at(key.circle_position + steps, KeyDef.Mode.MAJOR, key.use_alt_spelling)
 
 
 ## Which accidental bends the natural letter `letter` onto `target_pc`.
@@ -109,7 +177,7 @@ static func _accidental_for(letter: int, target_pc: int) -> int:
 ## (C D E F G A B), and the accidental is then whatever is needed to land on the
 ## right pitch. F major therefore comes out as F G A B-flat C D E - never A-sharp.
 static func scale_notes(key: KeyDef) -> Array[Note]:
-	var intervals: Array = MAJOR_INTERVALS if key.is_major() else NATURAL_MINOR_INTERVALS
+	var intervals: Array = MODE_INTERVALS[key.mode]
 	var tonic_pc := key.tonic.pitch_class()
 	var out: Array[Note] = []
 	for degree in 7:
@@ -309,6 +377,31 @@ static func signature_short(position: int) -> String:
 
 static func _accidental_count_text(count: int) -> String:
 	return "%d\u266f" % count if count > 0 else "%d\u266d" % -count
+
+
+## The mode's degrees written against the major scale, e.g. "1 2 b3 4 5 6 b7".
+##
+## Read off the interval table rather than spelled out, so a mode's formula and
+## the notes it actually produces cannot disagree - the formula IS the table,
+## expressed as distance from major.
+static func mode_formula(mode: int) -> String:
+	var intervals: Array = MODE_INTERVALS[wrapi(mode, 0, 7)]
+	var major: Array = MODE_INTERVALS[KeyDef.Mode.MAJOR]
+	var parts := PackedStringArray()
+	for degree in 7:
+		var shift: int = intervals[degree] - major[degree]
+		var mark := ""
+		if shift < 0:
+			mark = "\u266d"
+		elif shift > 0:
+			mark = "\u266f"
+		parts.append("%s%d" % [mark, degree + 1])
+	return " ".join(parts)
+
+
+## What the mode sounds like, in words.
+static func mode_description(mode: int) -> String:
+	return MODE_DESCRIPTIONS[wrapi(mode, 0, 7)]
 
 
 ## The name on a wedge, for whichever of the position's spellings it represents.
