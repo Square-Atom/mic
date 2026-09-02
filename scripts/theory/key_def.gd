@@ -5,7 +5,11 @@ extends RefCounted
 ## position it occupies. Position is carried along because the circle's geometry
 ## (relative keys, neighbouring keys, key signature) is derived from it directly.
 
-enum Mode { MAJOR, MINOR }
+## The seven diatonic modes. The ORDER matters: each value is the scale degree
+## of the parent major scale that the mode starts on, which is what lets the
+## interval table be a plain rotation and the fifths offset be a lookup.
+## Major and minor keep their familiar names - they are Ionian and Aeolian.
+enum Mode { MAJOR, DORIAN, PHRYGIAN, LYDIAN, MIXOLYDIAN, MINOR, LOCRIAN }
 
 var tonic: Note
 var mode: int = Mode.MAJOR
@@ -28,9 +32,18 @@ func is_major() -> bool:
 	return mode == Mode.MAJOR
 
 
+func is_minor() -> bool:
+	return mode == Mode.MINOR
+
+
+## "Major", "Dorian", "Minor", and so on.
+func mode_name() -> String:
+	return MusicTheory.MODE_NAMES[mode]
+
+
 ## e.g. "C Major", "B\u266d Minor".
 func display_name() -> String:
-	return "%s %s" % [tonic.display_name(), "Major" if is_major() else "Minor"]
+	return "%s %s" % [tonic.display_name(), mode_name()]
 
 
 ## Short form used on the circle wedges, e.g. "C", "Am".

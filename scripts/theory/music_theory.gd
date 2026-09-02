@@ -9,8 +9,32 @@ extends RefCounted
 ## these is just "some other key", and the same is true of the chord list.
 enum Function { NONE, TONIC, SUBDOMINANT, DOMINANT }
 
-const MAJOR_INTERVALS := [0, 2, 4, 5, 7, 9, 11]
-const NATURAL_MINOR_INTERVALS := [0, 2, 3, 5, 7, 8, 10]
+## Semitones above the tonic for each degree, one row per mode. Every row is
+## the major scale rotated to start on a different degree, which is exactly
+## what a mode is - written out rather than computed so each is readable and
+## checkable at a glance.
+const MODE_INTERVALS := [
+	[0, 2, 4, 5, 7, 9, 11],  # Major / Ionian
+	[0, 2, 3, 5, 7, 9, 10],  # Dorian
+	[0, 1, 3, 5, 7, 8, 10],  # Phrygian
+	[0, 2, 4, 6, 7, 9, 11],  # Lydian
+	[0, 2, 4, 5, 7, 9, 10],  # Mixolydian
+	[0, 2, 3, 5, 7, 8, 10],  # Minor / Aeolian
+	[0, 1, 3, 5, 6, 8, 10],  # Locrian
+]
+
+const MODE_NAMES := [
+	"Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Minor", "Locrian",
+]
+
+## How far each mode's tonic sits from its parent major's tonic, in fifths -
+## which is to say, how far round the circle. Reading the degrees in
+## circle-of-fifths order gives I=0, V=+1, II=+2, VI=+3, III=+4, VII=+5, IV=-1.
+## This is what lets the mode selector hold a tonic still and move the
+## signature instead.
+const MODE_FIFTHS_OFFSET := [0, 2, 4, -1, 1, 3, 5]
+
+
 
 ## The 12 circle positions, clockwise from C at the top. Each entry is the
 ## major tonic as [letter, accidental]; every other fact about the position
@@ -52,14 +76,19 @@ static func major_tonic(position: int) -> Note:
 	return Note.new(entry[0], entry[1])
 
 
-## The relative minor tonic at a circle position. A relative minor sits a minor
-## third below its major, which is always two letter names down - so the letter
-## is found by stepping back two, and the accidental by matching the pitch class.
-static func minor_tonic(position: int) -> Note:
-	var maj := major_tonic(position)
-	var letter := wrapi(maj.letter - 2, 0, 7)
-	var target_pc := wrapi(maj.pitch_class() - 3, 0, 12)
-	return Note.new(letter, _accidental_for(letter, target_pc))
+## The tonic of a mode built on a circle position.
+##
+## A mode starts on a degree of its parent major scale, and Mode's values ARE
+## those degree numbers - so this is a lookup into the parent's scale rather
+## than a separate calculation. Minor comes out as the sixth degree, which is
+## the relative minor, exactly as before.
+static func mode_tonic(position: int, mode: int, use_alt: bool = false) -> Note:
+	var parent_tonic := major_tonic(position)
+	if use_alt and has_alt_spelling(position):
+		var entry: Array = MAJOR_ALT_TONICS[wrapi(position, 0, 12)]
+		parent_tonic = Note.new(entry[0], entry[1])
+	var parent := KeyDef.new(parent_tonic, KeyDef.Mode.MAJOR, position, use_alt)
+	return scale_notes(parent)[wrapi(mode, 0, 7)]
 
 
 ## Does this position carry two equally standard names?
@@ -76,14 +105,18 @@ static func has_alt_spelling(position: int) -> bool:
 static func key_at(position: int, mode: int, use_alt: bool = false) -> KeyDef:
 	position = wrapi(position, 0, 12)
 	use_alt = use_alt and has_alt_spelling(position)
-	var tonic: Note
-	if use_alt:
-		var table: Dictionary = MAJOR_ALT_TONICS if mode == KeyDef.Mode.MAJOR else MINOR_ALT_TONICS
-		var entry: Array = table[position]
-		tonic = Note.new(entry[0], entry[1])
-	else:
-		tonic = major_tonic(position) if mode == KeyDef.Mode.MAJOR else minor_tonic(position)
-	return KeyDef.new(tonic, mode, position, use_alt)
+	return KeyDef.new(mode_tonic(position, mode, use_alt), mode, position, use_alt)
+
+
+## The circle position that keeps `key`'s tonic where it is while changing its
+## mode - which is what a composer means by "make this bit Mixolydian".
+##
+## The tonic stays put and the KEY SIGNATURE moves: C Mixolydian is C sitting
+## in F major's signature. Both modes are measured back to the parent major in
+## fifths, and the difference is how far round the circle to step.
+static func position_for_mode(key: KeyDef, mode: int) -> int:
+	var ionian_position: int = key.circle_position + MODE_FIFTHS_OFFSET[key.mode]
+	return wrapi(ionian_position - MODE_FIFTHS_OFFSET[wrapi(mode, 0, 7)], 0, 12)
 
 
 ## Signed key signature of a specific key: positive sharps, negative flats.
@@ -109,7 +142,7 @@ static func _accidental_for(letter: int, target_pc: int) -> int:
 ## (C D E F G A B), and the accidental is then whatever is needed to land on the
 ## right pitch. F major therefore comes out as F G A B-flat C D E - never A-sharp.
 static func scale_notes(key: KeyDef) -> Array[Note]:
-	var intervals: Array = MAJOR_INTERVALS if key.is_major() else NATURAL_MINOR_INTERVALS
+	var intervals: Array = MODE_INTERVALS[key.mode]
 	var tonic_pc := key.tonic.pitch_class()
 	var out: Array[Note] = []
 	for degree in 7:

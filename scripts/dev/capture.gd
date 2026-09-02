@@ -14,6 +14,8 @@ const SHOTS := [
 	["a_minor_sevenths", 0, KeyDef.Mode.MINOR, true, false],
 	["db_major_triads", 7, KeyDef.Mode.MAJOR, false, false],
 	["csharp_major_triads", 7, KeyDef.Mode.MAJOR, false, true],
+	["c_mixolydian", 11, KeyDef.Mode.MIXOLYDIAN, false, false],
+	["d_dorian", 0, KeyDef.Mode.DORIAN, false, false],
 ]
 
 var _frames := 0

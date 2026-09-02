@@ -62,18 +62,29 @@ func _refresh() -> void:
 	var key: KeyDef = AppState.selected_key
 	_key_title.text = key.display_name()
 
-	# Naming the relative key here reinforces what the circle already shows:
-	# the two rings at the same position share a key signature and a note set.
-	# The spelling carries across too: C# major's relative is A# minor, not Bb minor.
-	var other_mode := KeyDef.Mode.MINOR if key.is_major() else KeyDef.Mode.MAJOR
-	var relative := MusicTheory.key_at(key.circle_position, other_mode, key.use_alt_spelling)
-	_key_info.text = "%s   \u00b7   Relative %s: %s" % [
-		MusicTheory.signature_text(key),
-		"minor" if key.is_major() else "major",
-		relative.display_name(),
+	_key_info.text = "%s   ·   %s" % [
+		MusicTheory.signature_text(key), _companion_text(key),
 	]
 	_scale_notes.text = MusicTheory.scale_text(key)
 
 	var chords := AppState.current_chords()
 	for i in _rows.size():
 		_rows[i].set_chord(chords[i], key)
+
+## Names the key most worth knowing alongside this one. Major and minor point at
+## each other, because that pairing is exactly what the circle's two rings show.
+## Every other mode points at its parent major instead - the useful fact about
+## C Dorian is that it is B-flat major's notes with C as home.
+func _companion_text(key: KeyDef) -> String:
+	# The spelling carries across too: C# major's relative is A# minor, not Bb minor.
+	if key.is_major():
+		var relative_minor := MusicTheory.key_at(
+				key.circle_position, KeyDef.Mode.MINOR, key.use_alt_spelling)
+		return "Relative minor: " + relative_minor.display_name()
+	if key.is_minor():
+		var relative_major := MusicTheory.key_at(
+				key.circle_position, KeyDef.Mode.MAJOR, key.use_alt_spelling)
+		return "Relative major: " + relative_major.display_name()
+	var parent := MusicTheory.key_at(
+			key.circle_position, KeyDef.Mode.MAJOR, key.use_alt_spelling)
+	return "Same notes as " + parent.display_name()

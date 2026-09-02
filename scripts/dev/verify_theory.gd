@@ -193,6 +193,38 @@ func _initialize() -> void:
 			failures += 1
 	print("  ok   seventh leads in every major key, is subtonic in every minor")
 
+	print("\n=== Modes ===")
+	# Every mode on C must keep C as its tonic while its signature moves, and
+	# must land in the parent major the theory says it should.
+	var expected_parent := ["C", "B\u266d", "A\u266d", "G", "F", "E\u266d", "D\u266d"]
+	var home := MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
+	for mode in MusicTheory.MODE_NAMES.size():
+		var position := MusicTheory.position_for_mode(home, mode)
+		var key := MusicTheory.key_at(position, mode)
+		var parent := MusicTheory.key_at(position, KeyDef.Mode.MAJOR).tonic.display_name()
+		if key.tonic.pitch_class() != 0:
+			print("  FAIL %s moved off C" % key.display_name())
+			failures += 1
+		if parent != expected_parent[mode]:
+			print("  FAIL %s parent is %s, expected %s" % [
+				key.display_name(), parent, expected_parent[mode]])
+			failures += 1
+		print("  %-14s %-14s parent %-3s  %s" % [
+			key.display_name(), MusicTheory.signature_text(key), parent,
+			MusicTheory.scale_text(key)])
+
+	failures += _expect("C Dorian chords", _mode_syms(KeyDef.Mode.DORIAN),
+			"Cm Dm E\u266d F Gm A\u00b0 B\u266d")
+	failures += _expect("C Lydian chords", _mode_syms(KeyDef.Mode.LYDIAN),
+			"C D Em F\u266f\u00b0 G Am Bm")
+	failures += _expect("C Mixolydian chords", _mode_syms(KeyDef.Mode.MIXOLYDIAN),
+			"C Dm E\u00b0 F Gm Am B\u266d")
+	# Mixolydian's seventh sits a whole tone below the tonic, so it does not lead.
+	var mixo := MusicTheory.key_at(
+			MusicTheory.position_for_mode(home, KeyDef.Mode.MIXOLYDIAN), KeyDef.Mode.MIXOLYDIAN)
+	failures += _expect("Mixolydian seventh is a subtonic",
+			MusicTheory.degree_name(mixo, MusicTheory.diatonic_chords(mixo, false)[6]), "Subtonic")
+
 	print("\n=== Seventh handling ===")
 	var v7 := MusicTheory.diatonic_chords(MusicTheory.key_at(0, KeyDef.Mode.MAJOR), true)[4]
 	failures += _expect("C major V7 symbol", v7.symbol(), "G7")
@@ -235,5 +267,15 @@ func _expect(label: String, got: String, want: String) -> int:
 func _alt_syms(slot: int, mode: int) -> String:
 	var parts := PackedStringArray()
 	for c in MusicTheory.diatonic_chords(MusicTheory.key_at(slot, mode, true), false):
+		parts.append(c.symbol())
+	return " ".join(parts)
+
+
+## Chord symbols for a mode built on the same tonic as C major.
+func _mode_syms(mode: int) -> String:
+	var home := MusicTheory.key_at(0, KeyDef.Mode.MAJOR)
+	var key := MusicTheory.key_at(MusicTheory.position_for_mode(home, mode), mode)
+	var parts := PackedStringArray()
+	for c in MusicTheory.diatonic_chords(key, false):
 		parts.append(c.symbol())
 	return " ".join(parts)

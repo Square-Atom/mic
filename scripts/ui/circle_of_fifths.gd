@@ -128,7 +128,16 @@ func _refresh_states() -> void:
 	queue_redraw()
 
 
+## Which ring stands for a key. Minor has its own; every other mode is shown by
+## the major wedge, because the major key at that position is the one whose
+## signature the mode borrows. Picking Mixolydian on C therefore lights F - the
+## highlight moving is the thing worth noticing.
+static func _ring_mode(key: KeyDef) -> int:
+	return KeyDef.Mode.MINOR if key.is_minor() else KeyDef.Mode.MAJOR
+
+
 func _state_for(segment: CircleSegment, key: KeyDef) -> int:
+	var ring := _ring_mode(key)
 	if segment.circle_position == key.circle_position:
 		# The other spelling of the selected position is a different key, so it
 		# lights up no more than any other wedge.
@@ -136,12 +145,12 @@ func _state_for(segment: CircleSegment, key: KeyDef) -> int:
 			return CircleSegment.State.NORMAL
 		# Same position, other ring: the relative major/minor. They share a key
 		# signature, which is exactly why they sit at the same clock position.
-		if segment.mode == key.mode:
+		if segment.mode == ring:
 			return CircleSegment.State.TONIC
 		return CircleSegment.State.RELATIVE
 	# V and IV are marked only on the selection's own ring, so a major key's
 	# dominant reads as the major chord it actually is.
-	if segment.mode != key.mode:
+	if segment.mode != ring:
 		return CircleSegment.State.NORMAL
 	var steps := wrapi(segment.circle_position - key.circle_position, 0, 12)
 	if steps != 1 and steps != 11:
