@@ -9,7 +9,14 @@ extends HBoxContainer
 ## the chords themselves, which is what the table and keyboards show.
 
 const CHIP_SCENE := preload("res://scenes/mode_chip.tscn")
-const ALIAS_FONT_SIZE := 14
+## The row labels itself, so the heading travels with it rather than being a
+## separate node in the column that has to be kept in step.
+const BOLD_FONT := preload("res://themes/font_bold.tres")
+const HEADING := "MODE"
+## Tracks the chip's bottom padding plus its border, so the heading follows if
+## the buttons are ever resized.
+const HEADING_LIFT := ModeChip.PADDING_V + 1
+const ALIAS_FONT_SIZE := 17
 const COLUMN_SEPARATION := 3
 
 var _chips: Array[ModeChip] = []
@@ -18,10 +25,28 @@ var _chips: Array[ModeChip] = []
 func _ready() -> void:
 	add_theme_constant_override("separation", 6)
 	alignment = BoxContainer.ALIGNMENT_CENTER
+	add_child(_build_heading())
 	for mode in MusicTheory.MODE_NAMES.size():
 		add_child(_build_column(mode))
 	AppState.key_changed.connect(_on_key_changed)
 	_refresh()
+
+
+## Sits at the head of the row. Pulled to the bottom so it lines up with the
+## chips rather than with the names above them, then lifted by the chip's own
+## bottom padding - aligning the boxes is not the same as aligning the text
+## inside them.
+func _build_heading() -> Control:
+	var heading := Label.new()
+	heading.text = HEADING
+	heading.add_theme_font_size_override("font_size", 13)
+	heading.add_theme_color_override("font_color", Palette.TEXT_FAINT)
+
+	var wrapper := MarginContainer.new()
+	wrapper.add_theme_constant_override("margin_bottom", HEADING_LIFT)
+	wrapper.size_flags_vertical = Control.SIZE_SHRINK_END
+	wrapper.add_child(heading)
+	return wrapper
 
 
 ## A column is the familiar name sitting above its chip, outside the button, so
@@ -36,6 +61,7 @@ func _build_column(mode: int) -> VBoxContainer:
 	alias.text = "" if familiar == classical else familiar
 	alias.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	alias.add_theme_font_size_override("font_size", ALIAS_FONT_SIZE)
+	alias.add_theme_font_override("font", BOLD_FONT)
 	alias.add_theme_color_override("font_color", Palette.RELATIVE)
 
 	var chip: ModeChip = CHIP_SCENE.instantiate()

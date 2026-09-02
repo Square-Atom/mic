@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/circle_of_fifths.tscn" id="2_circle"]
 [ext_resource type="Script" path="res://scripts/ui/legend.gd" id="3_legend"]
 [ext_resource type="Script" path="res://scripts/ui/mode_bar.gd" id="4_mode"]
+[ext_resource type="Script" path="res://scripts/ui/mode_description.gd" id="5_modedesc"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -48,6 +49,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
+[node name="CircleLegend" type="HBoxContainer" parent="Margin/HBox/RightPane"]
+layout_mode = 2
+alignment = 1
+script = ExtResource("3_legend")
+
 [node name="CirclePane" type="AspectRatioContainer" parent="Margin/HBox/RightPane"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -55,18 +61,10 @@ size_flags_vertical = 3
 [node name="CircleOfFifths" parent="Margin/HBox/RightPane/CirclePane" instance=ExtResource("2_circle")]
 layout_mode = 2
 
-[node name="ModeLabel" type="Label" parent="Margin/HBox/RightPane"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.364706, 0.396078, 0.478431, 1)
-theme_override_font_sizes/font_size = 13
-text = "MODE"
-horizontal_alignment = 1
-
 [node name="ModeBar" type="HBoxContainer" parent="Margin/HBox/RightPane"]
 layout_mode = 2
 script = ExtResource("4_mode")
 
-[node name="CircleLegend" type="HBoxContainer" parent="Margin/HBox/RightPane"]
+[node name="ModeDescription" type="VBoxContainer" parent="Margin/HBox/RightPane"]
 layout_mode = 2
-alignment = 1
-script = ExtResource("3_legend")
+script = ExtResource("5_modedesc")

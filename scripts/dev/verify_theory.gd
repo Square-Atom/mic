@@ -226,6 +226,21 @@ func _initialize() -> void:
 	failures += _expect("Mixolydian seventh is a subtonic",
 			MusicTheory.degree_name(mixo, MusicTheory.diatonic_chords(mixo, false)[6]), "Subtonic")
 
+	# The formula is derived from the interval table, so it is worth pinning to
+	# the textbook strings: if the two ever disagree, the table is wrong.
+	var expected_formula := [
+		"1 2 3 4 5 6 7",
+		"1 2 \u266d3 4 5 6 \u266d7",
+		"1 \u266d2 \u266d3 4 5 \u266d6 \u266d7",
+		"1 2 3 \u266f4 5 6 7",
+		"1 2 3 4 5 6 \u266d7",
+		"1 2 \u266d3 4 5 \u266d6 \u266d7",
+		"1 \u266d2 \u266d3 4 \u266d5 \u266d6 \u266d7",
+	]
+	for mode in MusicTheory.MODE_NAMES.size():
+		failures += _expect(
+			"%s formula" % MusicTheory.MODE_CLASSICAL_NAMES[mode],
+			MusicTheory.mode_formula(mode), expected_formula[mode])
 	print("\n=== Seventh handling ===")
 	var v7 := MusicTheory.diatonic_chords(MusicTheory.key_at(0, KeyDef.Mode.MAJOR), true)[4]
 	failures += _expect("C major V7 symbol", v7.symbol(), "G7")

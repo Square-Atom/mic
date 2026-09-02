@@ -9,8 +9,8 @@ extends HBoxContainer
 ## note's place in the chord, and both sit inches from the chord's own name,
 ## roman numeral and note list. A legend that restates its neighbour is noise.
 
-const SWATCH_SIZE := 11
-const LABEL_FONT_SIZE := 13
+const SWATCH_SIZE := 13
+const LABEL_FONT_SIZE := 16
 const ENTRY_SEPARATION := 6
 const ROW_SEPARATION := 16
 

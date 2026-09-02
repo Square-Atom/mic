@@ -7,6 +7,12 @@ signal pressed
 
 @onready var _label: Label = %ModeName
 
+## Padding inside the button. Named because the row's heading lines itself up
+## against the bottom one - aligning the boxes is not the same as aligning the
+## text inside them.
+const PADDING_H := 13
+const PADDING_V := 7
+
 ## Held until the node is in the tree: the bar builds a chip, names it and only
 ## then parents it, so the label does not exist yet at that point.
 var _pending_name := ""
@@ -21,10 +27,10 @@ func _ready() -> void:
 	_style = StyleBoxFlat.new()
 	_style.set_corner_radius_all(6)
 	_style.set_border_width_all(1)
-	_style.content_margin_left = 10
-	_style.content_margin_right = 10
-	_style.content_margin_top = 5
-	_style.content_margin_bottom = 5
+	_style.content_margin_left = PADDING_H
+	_style.content_margin_right = PADDING_H
+	_style.content_margin_top = PADDING_V
+	_style.content_margin_bottom = PADDING_V
 	add_theme_stylebox_override("panel", _style)
 	mouse_entered.connect(func(): _hovered = true; _restyle())
 	mouse_exited.connect(func(): _hovered = false; _restyle())

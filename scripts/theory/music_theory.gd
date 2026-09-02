@@ -43,6 +43,19 @@ const MODE_CLASSICAL_NAMES := [
 ## signature instead.
 const MODE_FIFTHS_OFFSET := [0, 2, 4, -1, 1, 3, 5]
 
+## What each mode sounds like. The formula is not written here - see
+## mode_formula(), which reads it off the interval table so the two can never
+## drift apart.
+const MODE_DESCRIPTIONS := [
+	"The standard major scale; sounds bright, stable, and happy.",
+	"A minor-type scale with a raised 6th degree; sounds jazzy, mystical, or bittersweet.",
+	"A minor-type scale with a lowered 2nd degree; sounds dark, Spanish, or exotic.",
+	"A major-type scale with a raised 4th degree; sounds dreamy, floating, and magical.",
+	"A major-type scale with a lowered 7th degree; sounds bluesy, classic rock, and laid-back.",
+	"The standard natural minor scale; sounds sad, serious, and pensive.",
+	"A diminished scale with lowered 5th and 2nd degrees; sounds tense, unstable, and dark.",
+]
+
 
 
 ## The 12 circle positions, clockwise from C at the top. Each entry is the
@@ -364,6 +377,31 @@ static func signature_short(position: int) -> String:
 
 static func _accidental_count_text(count: int) -> String:
 	return "%d\u266f" % count if count > 0 else "%d\u266d" % -count
+
+
+## The mode's degrees written against the major scale, e.g. "1 2 b3 4 5 6 b7".
+##
+## Read off the interval table rather than spelled out, so a mode's formula and
+## the notes it actually produces cannot disagree - the formula IS the table,
+## expressed as distance from major.
+static func mode_formula(mode: int) -> String:
+	var intervals: Array = MODE_INTERVALS[wrapi(mode, 0, 7)]
+	var major: Array = MODE_INTERVALS[KeyDef.Mode.MAJOR]
+	var parts := PackedStringArray()
+	for degree in 7:
+		var shift: int = intervals[degree] - major[degree]
+		var mark := ""
+		if shift < 0:
+			mark = "\u266d"
+		elif shift > 0:
+			mark = "\u266f"
+		parts.append("%s%d" % [mark, degree + 1])
+	return " ".join(parts)
+
+
+## What the mode sounds like, in words.
+static func mode_description(mode: int) -> String:
+	return MODE_DESCRIPTIONS[wrapi(mode, 0, 7)]
 
 
 ## The name on a wedge, for whichever of the position's spellings it represents.

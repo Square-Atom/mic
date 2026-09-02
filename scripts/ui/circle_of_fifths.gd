@@ -20,7 +20,7 @@ const SECTOR := TAU / 12.0
 
 ## Circle size as a fraction of the square it is given. Under 1.0 so the chord
 ## panel can take the width back, and so there is slack to shift into.
-@export var radius_scale: float = 0.94
+@export var radius_scale: float = 0.99
 ## Nudge right, as a fraction of the control's width. Opens up the gap between
 ## the circle and the panel on its left.
 @export var centre_offset_x: float = 0.02
