@@ -44,24 +44,27 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "C   D   E   F   G   A   B"
 
-[node name="MidiToggle" type="CheckButton" parent="Margin/VBox/TopRow"]
-unique_name_in_owner = true
+[node name="Toggles" type="VBoxContainer" parent="Margin/VBox/TopRow"]
 layout_mode = 2
 size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="MidiToggle" type="CheckButton" parent="Margin/VBox/TopRow/Toggles"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 button_pressed = true
 text = "MIDI Input"
 
-[node name="Sep" type="HSeparator" parent="Margin/VBox" unique_id=1292688559]
-layout_mode = 2
-
-[node name="Controls" type="HBoxContainer" parent="Margin/VBox" unique_id=731867070]
-layout_mode = 2
-
-[node name="SeventhsToggle" type="CheckButton" parent="Margin/VBox/Controls" unique_id=1325987710]
+[node name="SeventhsToggle" type="CheckButton" parent="Margin/VBox/TopRow/Toggles" unique_id=1325987710]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Show 7th chords"
+
+[node name="Sep" type="HSeparator" parent="Margin/VBox" unique_id=1292688559]
+layout_mode = 2
 
 [node name="Header" type="MarginContainer" parent="Margin/VBox" unique_id=968249917]
 layout_mode = 2
