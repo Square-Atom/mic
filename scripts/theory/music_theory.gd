@@ -187,17 +187,13 @@ const LOWEST_MIDI := VOICING_BASE_MIDI
 const HIGHEST_MIDI := VOICING_BASE_MIDI + RANGE_OCTAVES * 12 - 1  # B5
 
 
-## Shift a note by whole octaves until it lands on the keyboard.
+## Whether a note falls on the keyboard the app draws.
 ##
-## A controller spans far more than two octaves, so most of it would otherwise
-## do nothing. Folding keeps the pitch class, so a C anywhere on the controller
-## lights a C here - what is lost is only which octave it was played in.
-static func fold_into_range(midi: int) -> int:
-	while midi < LOWEST_MIDI:
-		midi += 12
-	while midi > HIGHEST_MIDI:
-		midi -= 12
-	return midi
+## Notes outside it are ignored rather than folded in by octaves. Folding meant
+## a C two octaves down lit the C here, so a key you did not press appeared to
+## respond - which is harder to make sense of than silence.
+static func is_in_range(midi: int) -> bool:
+	return midi >= LOWEST_MIDI and midi <= HIGHEST_MIDI
 
 
 ## The chord as MIDI notes, in root position.

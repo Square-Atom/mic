@@ -6,6 +6,9 @@ extends Node
 ## events into the same activate_note() call the on-screen keys already make,
 ## so nothing else in the app knows or cares where a note came from.
 ##
+## Only the two octaves the app draws respond. A controller reaches well past
+## them, and the keys beyond simply do nothing - see MusicTheory.is_in_range.
+##
 ## Godot's MIDI support is input only, which is all this needs. Ports are held
 ## open only while the toggle is on, so an unused controller is not claimed.
 
@@ -58,16 +61,19 @@ func _input(event: InputEvent) -> void:
 
 
 func _press(pitch: int, velocity: int) -> void:
-	var midi := MusicTheory.fold_into_range(pitch)
-	AppState.activate_note(midi, _velocity_db(velocity))
-	AppState.set_note_held(midi, true)
+	if not MusicTheory.is_in_range(pitch):
+		return
+	AppState.activate_note(pitch, _velocity_db(velocity))
+	AppState.set_note_held(pitch, true)
 	get_viewport().set_input_as_handled()
 
 
 func _release(pitch: int) -> void:
+	if not MusicTheory.is_in_range(pitch):
+		return
 	# The tones decay on their own, so a release only clears the highlight -
 	# there is no note to cut short.
-	AppState.set_note_held(MusicTheory.fold_into_range(pitch), false)
+	AppState.set_note_held(pitch, false)
 	get_viewport().set_input_as_handled()
 
 
