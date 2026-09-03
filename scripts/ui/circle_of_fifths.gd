@@ -28,7 +28,7 @@ const SCALE_MIN_FONT := 8
 ## The play-scale button. Sized to match the chord rows' buttons, since it is
 ## the same control doing the same job, and placed below the scale line as a
 ## fraction of the hole radius.
-const PLAY_BUTTON_SIZE := Vector2(45.0, 51.0)
+const PLAY_BUTTON_SIZE := Vector2(51.0, 51.0)
 const PLAY_BUTTON_Y := 0.64
 
 ## Where each line of the centre readout sits, as a fraction of the hole radius

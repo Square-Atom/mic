@@ -59,7 +59,7 @@ key_height = 84.0
 
 [node name="PlayInOrder" type="Control" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 84)
+custom_minimum_size = Vector2(84, 84)
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Play root, third and fifth in order"
@@ -68,7 +68,7 @@ mode = 0
 
 [node name="PlayTogether" type="Control" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 84)
+custom_minimum_size = Vector2(84, 84)
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Play all notes at once"
