@@ -16,25 +16,26 @@ extends Control
 ## The design size each orientation is scaled against. Landscape matches the
 ## project's own viewport setting.
 ##
-## Portrait is 9:16, and its width is dictated by the chord table rather than
-## chosen: one ChordRow measures 1062px across and the panel 1110, so anything
-## narrower would clip the rows rather than shrink them. That makes the whole
-## interface small on a phone, which is the cost of keeping the row as it is;
-## the row has to get narrower before this number can.
+## Portrait is 9:16, and its width is dictated rather than chosen: one ChordRow
+## measures 1062px across and the panel 1110, so anything narrower would clip
+## the rows instead of shrinking them. That leaves the interface small on a
+## phone, which is the cost of keeping the row as it is; the row has to get
+## narrower before this number can.
 const LANDSCAPE_BASE := Vector2i(1920, 1080)
 const PORTRAIT_BASE := Vector2i(1180, 2100)
 
-## How tall the circle is allowed to be when stacked. Left to expand it would
-## take its full width squared - over 1100px - and push the table off screen.
-const PORTRAIT_CIRCLE_HEIGHT := 700.0
+## The smallest the stacked circle may be squeezed to. Its own contents need
+## 440px, so below this the wedges would start clipping rather than shrinking.
+const PORTRAIT_CIRCLE_MIN := 440.0
 
 ## The rule between the two halves, thin enough to divide without dividing
 ## attention.
 const DIVIDER_THICKNESS := 1.0
 
-## The table gets a little more room than the circle, in either direction.
+## The table gets a little more room than the circle, side by side.
 const PANEL_RATIO := 1.2
 
+@onready var _margin: MarginContainer = %Margin
 @onready var _layout: BoxContainer = %Layout
 @onready var _divider: ColorRect = %Divider
 @onready var _panel: Control = %ChordPanel
@@ -47,6 +48,9 @@ var _is_portrait := false
 func _ready() -> void:
 	_divider.color = Palette.PANEL_EDGE
 	get_window().size_changed.connect(_on_window_resized)
+	# The circle is measured against whatever width the layout ends up with, so
+	# refit whenever that changes rather than only when the orientation does.
+	_layout.resized.connect(_fit_circle)
 	# Apply once up front rather than waiting for a resize, so the very first
 	# frame is already in the right orientation.
 	_apply(_window_is_portrait())
@@ -56,11 +60,14 @@ func _on_window_resized() -> void:
 	var portrait := _window_is_portrait()
 	if portrait != _is_portrait:
 		_apply(portrait)
+	else:
+		# Same orientation, different width: the circle still has to be refitted.
+		_fit_circle()
 
 
-## Read the real window, never the viewport. content_scale_size changes the
-## viewport's logical size, so testing that would feed back on itself: going
-## portrait would reshape the viewport, which would look landscape again.
+## Read the real window, never the viewport. content_scale_size reshapes the
+## viewport, so testing that would feed back on itself: going portrait would
+## resize the viewport, which would then measure as landscape again.
 func _window_is_portrait() -> bool:
 	var win := get_window().size
 	return win.y > win.x
@@ -88,9 +95,8 @@ func _apply(portrait: bool) -> void:
 		_right.size_flags_horizontal = Control.SIZE_FILL
 		_right.size_flags_vertical = Control.SIZE_FILL
 		_divider.custom_minimum_size = Vector2(0.0, DIVIDER_THICKNESS)
-		# Capped, and centred by the AspectRatioContainer inside the full width.
-		_circle_pane.custom_minimum_size = Vector2(0.0, PORTRAIT_CIRCLE_HEIGHT)
 		_circle_pane.size_flags_vertical = Control.SIZE_FILL
+		_fit_circle()
 	else:
 		# Side by side they share the width, the table taking the larger share.
 		_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -105,3 +111,35 @@ func _apply(portrait: bool) -> void:
 	_divider.size_flags_horizontal = Control.SIZE_FILL
 	_divider.size_flags_vertical = Control.SIZE_FILL
 	_panel.size_flags_stretch_ratio = PANEL_RATIO
+
+
+## Size the stacked circle to the width, unless doing so would push the table
+## off the bottom.
+##
+## A circle wants to be a square as wide as the panel, and on a tall window
+## there is room for exactly that. On a short one there is not, and the table is
+## the thing worth keeping - so the circle takes whatever height is left once
+## everything else has claimed its minimum, and stops at its own.
+##
+## The room is measured from the viewport, never from the layout's own size. A
+## Control is never smaller than its minimum, so a circle that has grown too
+## tall inflates the layout to match - and measuring that would report the room
+## its own overflow created, leaving it no way back down.
+func _fit_circle() -> void:
+	if not _is_portrait or _margin == null:
+		return
+	var avail := get_viewport_rect().size
+	avail.x -= _margin.get_theme_constant("margin_left")
+	avail.x -= _margin.get_theme_constant("margin_right")
+	avail.y -= _margin.get_theme_constant("margin_top")
+	avail.y -= _margin.get_theme_constant("margin_bottom")
+	var used := DIVIDER_THICKNESS
+	used += _layout.get_theme_constant("separation") * 2.0
+	used += _panel.get_combined_minimum_size().y
+	used += _right.get_theme_constant("separation") * maxi(_right.get_child_count() - 1, 0)
+	for child in _right.get_children():
+		if child != _circle_pane and child is Control:
+			used += (child as Control).get_combined_minimum_size().y
+	var room := avail.y - used
+	# The width is the ceiling: a circle wider than the panel would be clipped.
+	_circle_pane.custom_minimum_size.y = clampf(room, PORTRAIT_CIRCLE_MIN, avail.x)
