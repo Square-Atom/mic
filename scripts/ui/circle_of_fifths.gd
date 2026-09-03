@@ -28,16 +28,20 @@ const SCALE_MIN_FONT := 8
 ## The play-scale button. Sized to match the chord rows' buttons, since it is
 ## the same control doing the same job, and placed below the scale line as a
 ## fraction of the hole radius.
-const PLAY_BUTTON_SIZE := Vector2(51.0, 51.0)
-const PLAY_BUTTON_Y := 0.64
+const PLAY_BUTTON_SIZE := Vector2(76.0, 76.0)
+const PLAY_BUTTON_Y := 0.60
 
 ## Where each line of the centre readout sits, as a fraction of the hole radius
-## from the middle; negative is upward. They are packed toward the top so the
-## play button has room to be a finger-sized target rather than a cursor-sized
-## one, and still clears the inner ring at the smallest the circle ever gets.
-const READOUT_TITLE_Y := -0.38
-const READOUT_SIGNATURE_Y := -0.06
-const READOUT_SCALE_Y := 0.28
+## from the middle; negative is upward.
+##
+## The three lines are packed into the upper half to leave the lower half to
+## the button. The tight case is landscape, where the hole is only 125px: a
+## 76px button's bottom corners have to stay inside that, and the title - 218px
+## at its widest, G# Mixolydian - has to stay inside it near the top, where the
+## circle is already narrowing.
+const READOUT_TITLE_Y := -0.44
+const READOUT_SIGNATURE_Y := -0.14
+const READOUT_SCALE_Y := 0.12
 
 ## Circle size as a fraction of the square it is given. Under 1.0 so the chord
 ## panel can take the width back, and so there is slack to shift into.
