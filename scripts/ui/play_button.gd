@@ -17,9 +17,9 @@ enum Mode {
 }
 
 const DOT_COUNT := 3
-const DOT_RADIUS := 2.6
-const DOT_SPACING := 7.0
-const CORNER_RADIUS := 5
+const DOT_RADIUS := 3.9
+const DOT_SPACING := 10.5
+const CORNER_RADIUS := 7
 
 @export var mode: Mode = Mode.SEQUENCE:
 	set(value):

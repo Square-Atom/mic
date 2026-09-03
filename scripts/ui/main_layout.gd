@@ -16,13 +16,13 @@ extends Control
 ## The design size each orientation is scaled against. Landscape matches the
 ## project's own viewport setting.
 ##
-## Portrait is 9:16, and its width is dictated rather than chosen: one ChordRow
-## measures 1062px across and the panel 1110, so anything narrower would clip
-## the rows instead of shrinking them. That leaves the interface small on a
-## phone, which is the cost of keeping the row as it is; the row has to get
-## narrower before this number can.
+## Portrait's width is dictated rather than chosen: one ChordRow measures 1092px
+## across and the panel 1140, so anything narrower would clip the rows instead
+## of shrinking them. Allow for the 28px margins either side and the base has
+## to clear 1196. That leaves the interface small on a phone, which is the cost
+## of keeping the row as it is; the row has to get narrower before this can.
 const LANDSCAPE_BASE := Vector2i(1920, 1080)
-const PORTRAIT_BASE := Vector2i(1180, 2100)
+const PORTRAIT_BASE := Vector2i(1220, 2170)
 
 ## The smallest the stacked circle may be squeezed to. Its own contents need
 ## 440px, so below this the wedges would start clipping rather than shrinking.

@@ -28,8 +28,16 @@ const SCALE_MIN_FONT := 8
 ## The play-scale button. Sized to match the chord rows' buttons, since it is
 ## the same control doing the same job, and placed below the scale line as a
 ## fraction of the hole radius.
-const PLAY_BUTTON_SIZE := Vector2(30.0, 34.0)
-const PLAY_BUTTON_Y := 0.68
+const PLAY_BUTTON_SIZE := Vector2(45.0, 51.0)
+const PLAY_BUTTON_Y := 0.64
+
+## Where each line of the centre readout sits, as a fraction of the hole radius
+## from the middle; negative is upward. They are packed toward the top so the
+## play button has room to be a finger-sized target rather than a cursor-sized
+## one, and still clears the inner ring at the smallest the circle ever gets.
+const READOUT_TITLE_Y := -0.38
+const READOUT_SIGNATURE_Y := -0.06
+const READOUT_SCALE_Y := 0.28
 
 ## Circle size as a fraction of the square it is given. Under 1.0 so the chord
 ## panel can take the width back, and so there is slack to shift into.
@@ -274,9 +282,10 @@ func _draw_centre_readout(font: Font) -> void:
 	var title_size := clampi(int(hole * 0.26), 12, 34)
 	var body_size := clampi(int(hole * 0.15), 9, 19)
 
-	_draw_centred(font, key.display_name(), title_size, _centre - Vector2(0, hole * 0.30), Palette.TEXT)
+	_draw_centred(font, key.display_name(), title_size,
+			_centre + Vector2(0, hole * READOUT_TITLE_Y), Palette.TEXT)
 	_draw_centred(font, MusicTheory.signature_text(key), body_size,
-			_centre + Vector2(0, hole * 0.02), Palette.TEXT_DIM)
+			_centre + Vector2(0, hole * READOUT_SIGNATURE_Y), Palette.TEXT_DIM)
 
 	# The scale reads as one line. Flat-heavy modes are far wider than sharp ones
 	# - C Locrian carries five flats - so the size is measured against the hole
@@ -286,7 +295,8 @@ func _draw_centre_readout(font: Font) -> void:
 		spelled.append(note.display_name())
 	var scale_text := " ".join(spelled)
 	var scale_size := _fitted_size(font, scale_text, body_size, hole * SCALE_MAX_WIDTH)
-	_draw_centred(font, scale_text, scale_size, _centre + Vector2(0, hole * 0.36), Palette.RELATIVE)
+	_draw_centred(font, scale_text, scale_size,
+			_centre + Vector2(0, hole * READOUT_SCALE_Y), Palette.RELATIVE)
 
 
 ## The largest size up to `max_size` at which `text` still fits `max_width`.
