@@ -24,7 +24,7 @@ vertical_alignment = 1
 
 [node name="ChordName" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 0)
+custom_minimum_size = Vector2(88, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "C"
@@ -33,7 +33,7 @@ vertical_alignment = 1
 
 [node name="NoteNames" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(164, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 19
 text = "C – E – G"
@@ -42,7 +42,7 @@ vertical_alignment = 1
 
 [node name="DegreeName" type="Label" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(126, 0)
+custom_minimum_size = Vector2(122, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -59,7 +59,7 @@ key_height = 84.0
 
 [node name="PlayInOrder" type="Control" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(45, 51)
+custom_minimum_size = Vector2(64, 84)
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Play root, third and fifth in order"
@@ -68,7 +68,7 @@ mode = 0
 
 [node name="PlayTogether" type="Control" parent="HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(45, 51)
+custom_minimum_size = Vector2(64, 84)
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Play all notes at once"
