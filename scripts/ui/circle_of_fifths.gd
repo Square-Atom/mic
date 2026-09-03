@@ -25,23 +25,18 @@ const SCALE_MAX_WIDTH := 1.72
 ## too small to read would be a worse answer than one slightly too long.
 const SCALE_MIN_FONT := 8
 
-## The play-scale button. Sized to match the chord rows' buttons, since it is
-## the same control doing the same job, and placed below the scale line as a
-## fraction of the hole radius.
-const PLAY_BUTTON_SIZE := Vector2(76.0, 76.0)
-const PLAY_BUTTON_Y := 0.60
+## The play-scale button, measured against the hole rather than fixed. The hole
+## runs from 125px in landscape to about 207 in a full-width portrait circle, and
+## a single size cannot suit both: what fits landscape is lost in the middle of a
+## phone's circle, and what suits the phone will not fit landscape at all.
+const BUTTON_RATIO := 0.61
+const BUTTON_MIN := 44.0
+const BUTTON_MAX := 140.0
 
-## Where each line of the centre readout sits, as a fraction of the hole radius
-## from the middle; negative is upward.
-##
-## The three lines are packed into the upper half to leave the lower half to
-## the button. The tight case is landscape, where the hole is only 125px: a
-## 76px button's bottom corners have to stay inside that, and the title - 218px
-## at its widest, G# Mixolydian - has to stay inside it near the top, where the
-## circle is already narrowing.
-const READOUT_TITLE_Y := -0.44
-const READOUT_SIGNATURE_Y := -0.14
-const READOUT_SCALE_Y := 0.12
+## The space between the readout's lines, and the wider space above the button,
+## as fractions of the hole radius.
+const READOUT_GAP := 0.06
+const BUTTON_GAP := 0.08
 
 ## Circle size as a fraction of the square it is given. Under 1.0 so the chord
 ## panel can take the width back, and so there is slack to shift into.
@@ -129,11 +124,13 @@ func _update_geometry() -> void:
 		segment.position = Vector2.ZERO
 		segment.size = size
 		segment.configure(_centre, inner, outer, start, start + SECTOR)
-	if _play_scale != null:
-		var hole := _radius * R_MINOR_INNER
-		_play_scale.size = PLAY_BUTTON_SIZE
-		_play_scale.position = _centre + Vector2(0.0, hole * PLAY_BUTTON_Y)
-		_play_scale.position -= PLAY_BUTTON_SIZE * 0.5
+	var font := get_theme_default_font()
+	if _play_scale != null and font != null:
+		var metrics := _readout_metrics(font, _radius * R_MINOR_INNER)
+		var side := float(metrics["button"])
+		_play_scale.size = Vector2(side, side)
+		_play_scale.position = _centre + Vector2(0.0, float(metrics["button_y"]))
+		_play_scale.position -= Vector2(side, side) * 0.5
 	queue_redraw()
 
 
@@ -282,25 +279,70 @@ func _draw_signature_ring(font: Font) -> void:
 ## the single most useful thing to have in view while reading the chord list.
 func _draw_centre_readout(font: Font) -> void:
 	var key := AppState.selected_key
-	var hole := _radius * R_MINOR_INNER
+	var metrics := _readout_metrics(font, _radius * R_MINOR_INNER)
+	_draw_centred(font, key.display_name(), int(metrics["title_size"]),
+			_centre + Vector2(0.0, float(metrics["title_y"])), Palette.TEXT)
+	_draw_centred(font, MusicTheory.signature_text(key), int(metrics["body_size"]),
+			_centre + Vector2(0.0, float(metrics["signature_y"])), Palette.TEXT_DIM)
+	_draw_centred(font, str(metrics["scale_text"]), int(metrics["scale_size"]),
+			_centre + Vector2(0.0, float(metrics["scale_y"])), Palette.RELATIVE)
+
+
+## Where every part of the readout sits, worked out in one place so that the
+## text and the button cannot drift apart.
+##
+## The block is centred in the hole and then pushed down if the title would
+## leave it. The title is the widest line and the one nearest the top, where the
+## circle has already begun to close in, so it is always what runs out of room
+## first - G# Mixolydian is 218px at full size.
+##
+## Centring is what lets a large circle use its space. Fixed fractions left the
+## readout marooned in the middle of a phone's circle while sitting exactly on
+## the limit in landscape, so there was no single set of numbers to tune.
+func _readout_metrics(font: Font, hole: float) -> Dictionary:
+	var key := AppState.selected_key
+	var title := key.display_name()
 	var title_size := clampi(int(hole * 0.26), 12, 34)
 	var body_size := clampi(int(hole * 0.15), 9, 19)
 
-	_draw_centred(font, key.display_name(), title_size,
-			_centre + Vector2(0, hole * READOUT_TITLE_Y), Palette.TEXT)
-	_draw_centred(font, MusicTheory.signature_text(key), body_size,
-			_centre + Vector2(0, hole * READOUT_SIGNATURE_Y), Palette.TEXT_DIM)
-
-	# The scale reads as one line. Flat-heavy modes are far wider than sharp ones
-	# - C Locrian carries five flats - so the size is measured against the hole
-	# rather than assumed to fit.
+	# Flat-heavy modes are far wider than sharp ones - C Locrian carries five -
+	# so the scale line is measured against the hole rather than assumed to fit.
 	var spelled := PackedStringArray()
 	for note in MusicTheory.scale_notes(key):
 		spelled.append(note.display_name())
 	var scale_text := " ".join(spelled)
 	var scale_size := _fitted_size(font, scale_text, body_size, hole * SCALE_MAX_WIDTH)
-	_draw_centred(font, scale_text, scale_size,
-			_centre + Vector2(0, hole * READOUT_SCALE_Y), Palette.RELATIVE)
+
+	var button := clampf(hole * BUTTON_RATIO, BUTTON_MIN, BUTTON_MAX)
+	var gap := hole * READOUT_GAP
+	var button_gap := hole * BUTTON_GAP
+	var total := title_size + gap + body_size + gap + scale_size + button_gap + button
+
+	var top := -total * 0.5
+	# How high the title may sit before the closing circle clips its corners.
+	var half_title := font.get_string_size(
+			title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x * 0.5
+	if half_title < hole:
+		top = maxf(top, -sqrt(hole * hole - half_title * half_title))
+
+	var cursor := top
+	var title_y := cursor + title_size * 0.5
+	cursor += title_size + gap
+	var signature_y := cursor + body_size * 0.5
+	cursor += body_size + gap
+	var scale_y := cursor + scale_size * 0.5
+	cursor += scale_size + button_gap
+	return {
+		"title_size": title_size,
+		"body_size": body_size,
+		"scale_size": scale_size,
+		"scale_text": scale_text,
+		"button": button,
+		"title_y": title_y,
+		"signature_y": signature_y,
+		"scale_y": scale_y,
+		"button_y": cursor + button * 0.5,
+	}
 
 
 ## The largest size up to `max_size` at which `text` still fits `max_width`.
