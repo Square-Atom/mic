@@ -77,25 +77,31 @@ func _apply(portrait: bool) -> void:
 	_layout.move_child(_divider, 1)
 	_layout.move_child(_panel if portrait else _right, 2)
 
-	# Expand along the axis the box now runs in, and merely fill across it.
-	var along := Control.SIZE_EXPAND_FILL
-	var across := Control.SIZE_FILL
-	_panel.size_flags_horizontal = across if portrait else along
-	_panel.size_flags_vertical = along if portrait else across
-	_right.size_flags_horizontal = across if portrait else along
-	_right.size_flags_vertical = along if portrait else across
-	_panel.size_flags_stretch_ratio = PANEL_RATIO
-
-	# The rule is one pixel on the axis it divides and stretches on the other.
-	_divider.custom_minimum_size = Vector2(0.0, DIVIDER_THICKNESS) if portrait \
-			else Vector2(DIVIDER_THICKNESS, 0.0)
-	_divider.size_flags_horizontal = along if portrait else across
-	_divider.size_flags_vertical = across if portrait else along
-
-	# Stacked, the circle is capped and centres itself inside the full width;
-	# side by side it takes whatever height is going.
+	# Along the axis the box runs in, portrait expands nothing. A tall narrow
+	# window leaves far more height than the content needs, and anything set to
+	# expand would swallow that slack as empty space - which is how a gap opened
+	# between the circle and the table. Natural heights keep the two together at
+	# the top, with the leftover below them where it reads as margin.
 	if portrait:
+		_panel.size_flags_horizontal = Control.SIZE_FILL
+		_panel.size_flags_vertical = Control.SIZE_FILL
+		_right.size_flags_horizontal = Control.SIZE_FILL
+		_right.size_flags_vertical = Control.SIZE_FILL
+		_divider.custom_minimum_size = Vector2(0.0, DIVIDER_THICKNESS)
+		# Capped, and centred by the AspectRatioContainer inside the full width.
 		_circle_pane.custom_minimum_size = Vector2(0.0, PORTRAIT_CIRCLE_HEIGHT)
+		_circle_pane.size_flags_vertical = Control.SIZE_FILL
 	else:
+		# Side by side they share the width, the table taking the larger share.
+		_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_panel.size_flags_vertical = Control.SIZE_FILL
+		_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_right.size_flags_vertical = Control.SIZE_FILL
+		_divider.custom_minimum_size = Vector2(DIVIDER_THICKNESS, 0.0)
 		_circle_pane.custom_minimum_size = Vector2.ZERO
-	_circle_pane.size_flags_vertical = across if portrait else along
+		_circle_pane.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	# The rule fills the axis it does not divide, in either orientation.
+	_divider.size_flags_horizontal = Control.SIZE_FILL
+	_divider.size_flags_vertical = Control.SIZE_FILL
+	_panel.size_flags_stretch_ratio = PANEL_RATIO
