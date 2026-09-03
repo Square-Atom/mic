@@ -282,6 +282,25 @@ static func chord_voicing(chord: Chord) -> PackedInt32Array:
 	return out
 
 
+## The scale as MIDI notes, climbing, and closing on the octave above.
+##
+## Same rule as chord_voicing - each note takes the first octave above the one
+## before it - so the line only ever ascends. The eighth note repeats the tonic
+## because a scale that stops on its seventh sounds unfinished. The worst case
+## is a tonic of B, giving 71-83, which is exactly the top of the C4-B5 range.
+static func scale_voicing(key: KeyDef) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var previous := VOICING_BASE_MIDI + key.tonic.pitch_class() - 1
+	for note in scale_notes(key):
+		var midi := VOICING_BASE_MIDI + note.pitch_class()
+		while midi <= previous:
+			midi += 12
+		out.append(midi)
+		previous = midi
+	out.append(out[0] + 12)
+	return out
+
+
 ## The traditional name of each scale degree. Tonic, Subdominant and Dominant
 ## are not a separate idea from the rest - they are simply the three of these
 ## seven that also name a harmonic function.

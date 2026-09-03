@@ -245,6 +245,28 @@ func _initialize() -> void:
 		failures += _expect("%s marks a dominant wedge" % probe.display_name(),
 				str(MusicTheory.has_function_degree(probe_mode, 4)), str(want_fifth != ""))
 
+	# The scale button plays this voicing, so in every mode of every key it has
+	# to stay inside the keyboard and never step downwards. The octave the eighth
+	# note adds is what puts the top of the range at risk.
+	var voicing_faults := PackedStringArray()
+	for slot in 12:
+		for scale_mode in KeyDef.Mode.values():
+			var scale_key := MusicTheory.with_mode(
+					MusicTheory.key_at(slot, KeyDef.Mode.MAJOR), scale_mode)
+			var voiced := MusicTheory.scale_voicing(scale_key)
+			if voiced.size() != 8:
+				voicing_faults.append("%s has %d notes" % [scale_key.display_name(), voiced.size()])
+				continue
+			for i in range(1, voiced.size()):
+				if voiced[i] <= voiced[i - 1]:
+					voicing_faults.append("%s does not ascend" % scale_key.display_name())
+					break
+			if voiced[0] < MusicTheory.LOWEST_MIDI or voiced[7] > MusicTheory.HIGHEST_MIDI:
+				voicing_faults.append("%s spans %d-%d" % [
+						scale_key.display_name(), voiced[0], voiced[7]])
+	failures += _expect("scale voicings ascend and stay in C4-B5",
+			"none" if voicing_faults.is_empty() else " / ".join(voicing_faults), "none")
+
 	# The formula is derived from the interval table, so it is worth pinning to
 	# the textbook strings: if the two ever disagree, the table is wrong.
 	var expected_formula := [

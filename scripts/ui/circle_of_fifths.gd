@@ -18,6 +18,19 @@ const R_MINOR_INNER := 0.36
 
 const SECTOR := TAU / 12.0
 
+## How much of the hole's diameter the scale line may fill. Under 2.0 so the
+## text keeps a margin and never touches the inner ring.
+const SCALE_MAX_WIDTH := 1.72
+## The scale stops shrinking here and is allowed to run wide instead. A line
+## too small to read would be a worse answer than one slightly too long.
+const SCALE_MIN_FONT := 8
+
+## The play-scale button. Sized to match the chord rows' buttons, since it is
+## the same control doing the same job, and placed below the scale line as a
+## fraction of the hole radius.
+const PLAY_BUTTON_SIZE := Vector2(30.0, 34.0)
+const PLAY_BUTTON_Y := 0.68
+
 ## Circle size as a fraction of the square it is given. Under 1.0 so the chord
 ## panel can take the width back, and so there is slack to shift into.
 @export var radius_scale: float = 0.99
@@ -28,11 +41,13 @@ const SECTOR := TAU / 12.0
 var _segments: Array[CircleSegment] = []
 var _radius: float = 0.0
 var _centre: Vector2 = Vector2.ZERO
+var _play_scale: PlayButton
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_build_segments()
+	_add_play_button()
 	_update_geometry()
 	# Read the current selection rather than waiting for a signal, so this node
 	# is correct no matter what order the scene tree happens to be readied in.
@@ -102,7 +117,32 @@ func _update_geometry() -> void:
 		segment.position = Vector2.ZERO
 		segment.size = size
 		segment.configure(_centre, inner, outer, start, start + SECTOR)
+	if _play_scale != null:
+		var hole := _radius * R_MINOR_INNER
+		_play_scale.size = PLAY_BUTTON_SIZE
+		_play_scale.position = _centre + Vector2(0.0, hole * PLAY_BUTTON_Y)
+		_play_scale.position -= PLAY_BUTTON_SIZE * 0.5
 	queue_redraw()
+
+
+## The button in the hole that sounds the whole scale.
+##
+## Added after the wedges so it comes later in the child order. It could only
+## ever be reached inside the hole anyway - every wedge's polar _has_point
+## rejects that area - but the ordering states the intent rather than relying
+## on that.
+func _add_play_button() -> void:
+	_play_scale = PlayButton.new()
+	# Rising dots already mean "one after another" on the chord rows, which is
+	# exactly what playing a scale is.
+	_play_scale.mode = PlayButton.Mode.SEQUENCE
+	_play_scale.tooltip_text = "Play the scale"
+	_play_scale.pressed.connect(_on_play_scale)
+	add_child(_play_scale)
+
+
+func _on_play_scale() -> void:
+	AppState.activate_chord(MusicTheory.scale_voicing(AppState.selected_key), true)
 
 
 func _on_segment_selected(slot: int, mode: int, use_alt: bool) -> void:
@@ -238,17 +278,25 @@ func _draw_centre_readout(font: Font) -> void:
 	_draw_centred(font, MusicTheory.signature_text(key), body_size,
 			_centre + Vector2(0, hole * 0.02), Palette.TEXT_DIM)
 
-	# The scale is too wide to fit the hole on one line, so split it in two.
-	var notes := MusicTheory.scale_notes(key)
-	var first := PackedStringArray()
-	var second := PackedStringArray()
-	for i in notes.size():
-		if i < 4:
-			first.append(notes[i].display_name())
-		else:
-			second.append(notes[i].display_name())
-	_draw_centred(font, "  ".join(first), body_size, _centre + Vector2(0, hole * 0.36), Palette.RELATIVE)
-	_draw_centred(font, "  ".join(second), body_size, _centre + Vector2(0, hole * 0.62), Palette.RELATIVE)
+	# The scale reads as one line. Flat-heavy modes are far wider than sharp ones
+	# - C Locrian carries five flats - so the size is measured against the hole
+	# rather than assumed to fit.
+	var spelled := PackedStringArray()
+	for note in MusicTheory.scale_notes(key):
+		spelled.append(note.display_name())
+	var scale_text := " ".join(spelled)
+	var scale_size := _fitted_size(font, scale_text, body_size, hole * SCALE_MAX_WIDTH)
+	_draw_centred(font, scale_text, scale_size, _centre + Vector2(0, hole * 0.36), Palette.RELATIVE)
+
+
+## The largest size up to `max_size` at which `text` still fits `max_width`.
+static func _fitted_size(font: Font, text: String, max_size: int, max_width: float) -> int:
+	var size_px := max_size
+	while size_px > SCALE_MIN_FONT:
+		if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size_px).x <= max_width:
+			break
+		size_px -= 1
+	return size_px
 
 
 func _draw_centred(font: Font, text: String, font_size: int, anchor: Vector2, color: Color) -> void:
