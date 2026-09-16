@@ -37,6 +37,10 @@ const GLYPH_CORNER_RATIO := 0.05
 ## the arc spans a few pixels, and more vertices cost more than they show.
 const CORNER_SEGMENTS := 4
 
+## Width of the hairline traced over a filled mark to soften its edge. One pixel
+## is the whole point - it is a fade, not a border.
+const SMOOTHING_WIDTH := 1.0
+
 @export var glyph: Glyph = Glyph.PLUS:
 	set(value):
 		glyph = value
@@ -102,7 +106,7 @@ func _draw_trash(centre: Vector2, span: float, ink_color: Color, stroke: float) 
 func _draw_play(centre: Vector2, span: float, ink_color: Color) -> void:
 	var reach := span * 0.27
 	var origin := centre - Vector2(reach * 0.12, 0.0)
-	draw_colored_polygon(_rounded(PackedVector2Array([
+	_fill_smooth(_rounded(PackedVector2Array([
 		origin + Vector2(-reach * 0.80, -reach),
 		origin + Vector2(-reach * 0.80, reach),
 		origin + Vector2(reach, 0.0),
@@ -111,12 +115,32 @@ func _draw_play(centre: Vector2, span: float, ink_color: Color) -> void:
 
 func _draw_stop(centre: Vector2, span: float, ink_color: Color) -> void:
 	var half := span * 0.20
-	draw_colored_polygon(_rounded(PackedVector2Array([
+	_fill_smooth(_rounded(PackedVector2Array([
 		centre + Vector2(-half, -half),
 		centre + Vector2(half, -half),
 		centre + Vector2(half, half),
 		centre + Vector2(-half, half),
 	]), span * GLYPH_CORNER_RATIO), ink_color)
+
+
+## Fill a polygon and soften its edge.
+##
+## draw_colored_polygon has no antialiasing of its own, so the shape is filled
+## and then its own outline traced back over it as a hairline. That hairline IS
+## antialiased, and being the same colour it reads as a fade along the fill's
+## edge rather than as a border - which is all the triangle's diagonals and the
+## square's corner arcs need to stop looking stepped.
+##
+## The line is centred on the edge, so it softens outwards by half a pixel and
+## the mark keeps the size it was measured for.
+func _fill_smooth(points: PackedVector2Array, color: Color) -> void:
+	draw_colored_polygon(points, color)
+	var outline := points.duplicate()
+	# draw_polyline leaves the path open. Without closing it by hand, the edge
+	# back to the first point keeps its hard step - on the triangle that is the
+	# upper diagonal, which is the most visible edge on the mark.
+	outline.append(points[0])
+	draw_polyline(outline, color, SMOOTHING_WIDTH, true)
 
 
 ## A convex polygon with its corners rounded off, as a point list ready to fill.
@@ -127,10 +151,10 @@ func _draw_stop(centre: Vector2, span: float, ink_color: Color) -> void:
 ## which is why the triangle's tip is cut further in than the square's corners,
 ## and why both end up looking rounded by the same amount.
 ##
-## Built as one polygon rather than a sharp fill with a thick outline stroked
-## over it. Two overlapping draws at this size show their seam wherever the
-## antialiased edges meet, and the stroke would push the mark outside the
-## bounds the glyph was measured for.
+## The rounding lives in the point list rather than in a thick stroke traced
+## round a sharp shape. A stroke wide enough to round a corner would push the
+## mark outside the bounds it was measured against, and would leave the fill
+## and the stroke disagreeing about where the edge is.
 func _rounded(points: PackedVector2Array, radius: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
 	var count := points.size()
