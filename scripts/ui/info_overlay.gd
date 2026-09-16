@@ -21,6 +21,10 @@ const TITLE := "Music Interactive Cheatsheet (M.I.C.)"
 const SITE_URL := "https://www.pixelmancer.studio"
 const SITE_LABEL := "www.pixelmancer.studio"
 const CONTACT := "contact@pixelmancer.studio"
+const ADVISOR := "Dang Le"
+## No link, because none was given for it. The name stands on its own rather
+## than being pointed at a guessed address.
+const ADVISOR_STUDIO := "23:59 Studio"
 
 const TITLE_FONT_SIZE := 22
 const BODY_FONT_SIZE := 15
@@ -158,9 +162,12 @@ func _build_details() -> Control:
 	# The link colour is taken from the palette rather than written as a literal,
 	# so it cannot drift from the rest of the interface.
 	var link := Palette.RELATIVE.to_html(false)
-	details.text = "Created by Hau Tran at %s\n\nAny feedback, please send to %s" % [
-		_link(SITE_URL, SITE_LABEL, link),
-		_link("mailto:" + CONTACT, CONTACT, link),
+	# One entry per line of the panel. The credit and the advising line belong
+	# together, so only the feedback line is set apart by a blank one.
+	details.text = "%s\n%s\n\n%s" % [
+		"Created by Hau Tran at " + _link(SITE_URL, SITE_LABEL, link),
+		"With advising from " + ADVISOR + " at " + ADVISOR_STUDIO,
+		"Any feedback, please send to " + _link("mailto:" + CONTACT, CONTACT, link),
 	]
 	return details
 
