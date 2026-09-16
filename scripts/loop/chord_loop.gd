@@ -25,7 +25,7 @@ const MAX_TEMPO := 240
 ## One press of the spinner. Coarse on purpose: the useful gesture is "a bit
 ## faster", and a beginner nudging by one would be there all day.
 const TEMPO_STEP := 10
-const DEFAULT_TEMPO := 100
+const DEFAULT_TEMPO := 130
 
 ## Longest gap the clock will honour in one frame. A window drag or a stalled
 ## frame can hand _process a delta of several seconds, and catching up on it
