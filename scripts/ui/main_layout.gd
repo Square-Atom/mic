@@ -16,13 +16,16 @@ extends Control
 ## The design size each orientation is scaled against. Landscape matches the
 ## project's own viewport setting.
 ##
-## Portrait's width is dictated rather than chosen: one ChordRow measures 1098px
-## across and the panel 1146, so anything narrower would clip the rows instead
+## Portrait's width is dictated rather than chosen: one ChordRow measures 1198px
+## across and the panel 1246, so anything narrower would clip the rows instead
 ## of shrinking them. Allow for the 28px margins either side and the base has
-## to clear 1202. That leaves the interface small on a phone, which is the cost
+## to clear 1302. That leaves the interface small on a phone, which is the cost
 ## of keeping the row as it is; the row has to get narrower before this can.
+##
+## The row gained 100px when the add-to-loop button joined the two play buttons
+## - an 84px target plus the HBox's 16px separation - and this had to follow it.
 const LANDSCAPE_BASE := Vector2i(1920, 1080)
-const PORTRAIT_BASE := Vector2i(1220, 2170)
+const PORTRAIT_BASE := Vector2i(1320, 2170)
 
 ## The smallest the stacked circle may be squeezed to. Its own contents need
 ## 440px, so below this the wedges would start clipping rather than shrinking.

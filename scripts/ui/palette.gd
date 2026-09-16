@@ -62,6 +62,19 @@ const LABEL_ON_DARK := Color("#c6cede")
 const KEY_LABEL := LABEL_ON_LIGHT
 
 
+## The colour of a chord's functional family, as MusicTheory.chord_family names
+## it. Kept here rather than in the chord row because the loop strip colours its
+## numerals the same way, and a numeral that meant one colour in the table and
+## another in the loop would undo the point of colouring it at all.
+static func family_color(family: int) -> Color:
+	match family:
+		MusicTheory.Family.SUBDOMINANT:
+			return SUBDOMINANT
+		MusicTheory.Family.DOMINANT:
+			return DOMINANT
+	return ACCENT
+
+
 ## A chord tone that is not the root: darker, and turned slightly in hue. The
 ## root keeps the family's full brightness so it reads as the top of the chord,
 ## and the third and fifth sit under it - which is also how they sound.

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b0k0sstqvasrw" path="res://scripts/ui/chord_panel.gd" id="1_panel"]
 [ext_resource type="Script" path="res://scripts/ui/credits.gd" id="3_credits"]
+[ext_resource type="Script" path="res://scripts/ui/chord_loop_bar.gd" id="4_loop"]
 
 [node name="ChordPanel" type="PanelContainer" unique_id=1007954078]
 offset_right = 860.0
@@ -117,6 +118,11 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
+
+[node name="ChordLoopBar" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+script = ExtResource("4_loop")
+
 [node name="Credits" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
 script = ExtResource("3_credits")

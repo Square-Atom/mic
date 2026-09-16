@@ -19,6 +19,7 @@ const BOLD_FONT := preload("res://themes/font_bold.tres")
 @onready var _keyboard: PianoKeyboard = %Keyboard
 @onready var _play_in_order: PlayButton = %PlayInOrder
 @onready var _play_together: PlayButton = %PlayTogether
+@onready var _add_to_loop: IconButton = %AddToLoop
 
 var _chord: Chord = null
 var _key: KeyDef = null
@@ -42,6 +43,7 @@ func _ready() -> void:
 	_keyboard.key_pressed.connect(_on_keyboard_key_pressed)
 	_play_in_order.pressed.connect(_on_play_in_order)
 	_play_together.pressed.connect(_on_play_together)
+	_add_to_loop.pressed.connect(_on_add_to_loop)
 	# Every row shows the held note, which turns the controller into a way of
 	# asking "which of these chords contains the note I am playing?".
 	AppState.held_notes_changed.connect(_keyboard.set_held)
@@ -94,12 +96,7 @@ func _apply() -> void:
 ## seven rows are coloured - unlike the keyboard, where only the three primary
 ## chords are picked out.
 func _family_color() -> Color:
-	match MusicTheory.chord_family(_chord):
-		MusicTheory.Family.SUBDOMINANT:
-			return Palette.SUBDOMINANT
-		MusicTheory.Family.DOMINANT:
-			return Palette.DOMINANT
-	return Palette.ACCENT
+	return Palette.family_color(MusicTheory.chord_family(_chord))
 
 
 ## The colour family this row works in. The tonic, subdominant and dominant
@@ -126,6 +123,13 @@ func _on_play_in_order() -> void:
 
 func _on_play_together() -> void:
 	AppState.activate_chord(_voicing, false)
+
+
+## Append this row's DEGREE to the loop, not its chord. The loop is a
+## progression rather than a fixed set of notes, so a I added here stays the I
+## of whichever key is selected when it comes round to play.
+func _on_add_to_loop() -> void:
+	ChordLoop.add_slot(_chord.degree)
 
 
 
