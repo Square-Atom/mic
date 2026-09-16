@@ -62,6 +62,10 @@ func _refresh() -> void:
 	var key: KeyDef = AppState.selected_key
 	_key_title.text = key.display_name()
 
+	# These two share a line: the signature and companion key in small dim type,
+	# the scale itself larger beside them. They used to be stacked, which cost
+	# the table a row of height on every screen to separate two facts that are
+	# read together anyway. Keep both short enough to stay side by side.
 	_key_info.text = "%s   ·   %s" % [
 		MusicTheory.signature_text(key), _companion_text(key),
 	]
