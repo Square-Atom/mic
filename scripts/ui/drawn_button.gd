@@ -67,7 +67,10 @@ func _gui_input(event: InputEvent) -> void:
 	if _held:
 		_held = false
 		queue_redraw()
-		pressed.emit()
+		# A finger that landed here and then became half of a pinch is lifting
+		# off a zoom, not finishing a press.
+		if not PinchZoom.touch_became_gesture():
+			pressed.emit()
 		accept_event()
 
 

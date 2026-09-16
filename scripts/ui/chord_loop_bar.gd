@@ -75,7 +75,11 @@ func _notification(what: int) -> void:
 	# Deferred because this notification is being propagated down the tree right
 	# now, and removing the slot rebuilds the strip: pulling nodes out from under
 	# a walk that is still in progress is how you get the one node it skipped.
-	if not get_viewport().gui_is_drag_successful():
+	#
+	# A pinch cancels any drag its first finger had started, and that cancel
+	# looks exactly like a drag-out. The chord stays.
+	if not get_viewport().gui_is_drag_successful() \
+			and not PinchZoom.touch_became_gesture():
 		ChordLoop.remove_slot.call_deferred(from)
 
 

@@ -58,13 +58,19 @@ const PANEL_RATIO := 1.2
 @onready var _info_overlay: InfoOverlay = %InfoOverlay
 
 var _is_portrait := false
+var _zoom := PinchZoom.new()
 
 
 func _ready() -> void:
 	_divider.color = Palette.PANEL_EDGE
+	# Zoom belongs to the screen as a whole, so the screen owns it.
+	add_child(_zoom)
 	# The button sits with the circle and the panel it opens covers everything,
 	# so this screen - which is the only node that owns both - is where they meet.
 	_info_button.pressed.connect(_info_overlay.open)
+	# The panel is laid out against the unzoomed screen; opened while zoomed in,
+	# it would land partly off the edge.
+	_info_button.pressed.connect(_zoom.reset)
 	get_window().size_changed.connect(_on_window_resized)
 	# The circle is measured against whatever width the layout ends up with, so
 	# refit whenever that changes rather than only when the orientation does.
