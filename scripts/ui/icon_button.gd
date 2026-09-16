@@ -17,6 +17,8 @@ enum Glyph {
 	STOP,
 	ARROW_UP,
 	ARROW_DOWN,
+	INFO,
+	CLOSE,
 }
 
 ## Stroke weight, as a fraction of the button's shorter side. The floor keeps
@@ -46,6 +48,10 @@ func _draw_glyph(centre: Vector2, span: float, ink_color: Color) -> void:
 			_draw_arrow(centre, span, ink_color, -1.0)
 		Glyph.ARROW_DOWN:
 			_draw_arrow(centre, span, ink_color, 1.0)
+		Glyph.INFO:
+			_draw_info(centre, span, ink_color, stroke)
+		Glyph.CLOSE:
+			_draw_close(centre, span, ink_color, stroke)
 
 
 func _draw_plus(centre: Vector2, span: float, ink_color: Color, stroke: float) -> void:
@@ -96,6 +102,26 @@ func _draw_play(centre: Vector2, span: float, ink_color: Color) -> void:
 func _draw_stop(centre: Vector2, span: float, ink_color: Color) -> void:
 	var side := span * 0.40
 	draw_rect(Rect2(centre - Vector2(side, side) * 0.5, Vector2(side, side)), ink_color, true)
+
+
+## A lowercase i: a separate dot above a stem.
+##
+## Drawn rather than typed, like every other mark here. A letter set in the
+## theme font would be the one glyph on screen whose weight and size came from
+## somewhere else, and it would shift the moment the font did.
+func _draw_info(centre: Vector2, span: float, ink_color: Color, stroke: float) -> void:
+	var stem_top := centre.y - span * 0.08
+	var stem_bottom := centre.y + span * 0.20
+	draw_circle(Vector2(centre.x, centre.y - span * 0.20), stroke * 0.62,
+			ink_color, true, -1.0, true)
+	draw_line(Vector2(centre.x, stem_top), Vector2(centre.x, stem_bottom),
+			ink_color, stroke, true)
+
+
+func _draw_close(centre: Vector2, span: float, ink_color: Color, stroke: float) -> void:
+	var arm := span * 0.19
+	draw_line(centre + Vector2(-arm, -arm), centre + Vector2(arm, arm), ink_color, stroke, true)
+	draw_line(centre + Vector2(-arm, arm), centre + Vector2(arm, -arm), ink_color, stroke, true)
 
 
 ## The tempo arrows. `facing` is -1 for up and 1 for down, so the two share one

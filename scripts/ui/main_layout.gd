@@ -44,12 +44,17 @@ const PANEL_RATIO := 1.2
 @onready var _panel: Control = %ChordPanel
 @onready var _right: Control = %RightPane
 @onready var _circle_pane: Control = %CirclePane
+@onready var _info_button: IconButton = %InfoButton
+@onready var _info_overlay: InfoOverlay = %InfoOverlay
 
 var _is_portrait := false
 
 
 func _ready() -> void:
 	_divider.color = Palette.PANEL_EDGE
+	# The button sits with the circle and the panel it opens covers everything,
+	# so this screen - which is the only node that owns both - is where they meet.
+	_info_button.pressed.connect(_info_overlay.open)
 	get_window().size_changed.connect(_on_window_resized)
 	# The circle is measured against whatever width the layout ends up with, so
 	# refit whenever that changes rather than only when the orientation does.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/chord_panel.tscn" id="1_panel"]
 [ext_resource type="PackedScene" path="res://scenes/circle_of_fifths.tscn" id="2_circle"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/ui/mode_bar.gd" id="4_mode"]
 [ext_resource type="Script" path="res://scripts/ui/mode_description.gd" id="5_modedesc"]
 [ext_resource type="Script" path="res://scripts/ui/main_layout.gd" id="6_layout"]
+[ext_resource type="Script" path="res://scripts/ui/icon_button.gd" id="7_icon"]
+[ext_resource type="Script" path="res://scripts/ui/info_overlay.gd" id="8_info"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -62,10 +64,28 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="CircleLegend" type="HBoxContainer" parent="Margin/Layout/RightPane"]
+[node name="CircleTop" type="HBoxContainer" parent="Margin/Layout/RightPane"]
 layout_mode = 2
+
+[node name="LegendSpacer" type="Control" parent="Margin/Layout/RightPane/CircleTop"]
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CircleLegend" type="HBoxContainer" parent="Margin/Layout/RightPane/CircleTop"]
+layout_mode = 2
+size_flags_horizontal = 3
 alignment = 1
 script = ExtResource("3_legend")
+
+[node name="InfoButton" type="Control" parent="Margin/Layout/RightPane/CircleTop"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_vertical = 4
+tooltip_text = "About this app"
+script = ExtResource("7_icon")
+glyph = 6
 
 [node name="CirclePane" type="AspectRatioContainer" parent="Margin/Layout/RightPane"]
 unique_name_in_owner = true
@@ -82,3 +102,14 @@ script = ExtResource("4_mode")
 [node name="ModeDescription" type="VBoxContainer" parent="Margin/Layout/RightPane"]
 layout_mode = 2
 script = ExtResource("5_modedesc")
+
+[node name="InfoOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_info")
