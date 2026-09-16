@@ -20,8 +20,8 @@ const DRAG_TYPE := "mic_loop_slot"
 
 const BOLD_FONT := preload("res://themes/font_bold.tres")
 
-const BOX_MIN_SIZE := Vector2(74.0, 62.0)
-const DELETE_MIN_SIZE := Vector2(74.0, 26.0)
+const BOX_MIN_SIZE := Vector2(74.0, 58.0)
+const DELETE_MIN_SIZE := Vector2(74.0, 22.0)
 const NUMERAL_FONT_SIZE := 26
 const CORNER_RADIUS := 8
 

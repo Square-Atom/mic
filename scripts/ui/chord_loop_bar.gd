@@ -14,7 +14,7 @@ const TRANSPORT_SIZE := Vector2(88.0, 88.0)
 ## Tall enough for a slot's box and its delete button, so an empty strip is the
 ## same height as a full one and the panel does not jump when the first chord
 ## lands in it.
-const TIMELINE_MIN_HEIGHT := 92.0
+const TIMELINE_MIN_HEIGHT := 84.0
 
 var _timeline: LoopTimeline
 var _hint: Label
@@ -73,9 +73,9 @@ func _notification(what: int) -> void:
 func _build() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_top", 8)
 	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	add_child(margin)
 
 	var row := HBoxContainer.new()
@@ -101,9 +101,9 @@ func _build_timeline() -> Control:
 
 	var inner := MarginContainer.new()
 	inner.add_theme_constant_override("margin_left", 12)
-	inner.add_theme_constant_override("margin_top", 8)
+	inner.add_theme_constant_override("margin_top", 6)
 	inner.add_theme_constant_override("margin_right", 12)
-	inner.add_theme_constant_override("margin_bottom", 8)
+	inner.add_theme_constant_override("margin_bottom", 6)
 	frame.add_child(inner)
 
 	_timeline = LoopTimeline.new()

@@ -13,8 +13,18 @@ extends Control
 ## the engine refuses to reorient those: HBoxContainer.set_vertical() fails
 ## outright with "Can't change orientation of HBoxContainer".
 
-## The design size each orientation is scaled against. Landscape matches the
-## project's own viewport setting.
+## The design size each orientation is scaled against.
+##
+## Landscape's HEIGHT is dictated the same way portrait's width is. The table is
+## seven fixed rows, a header and the loop strip, and that total is now about
+## 1098px - past the 1080 the project's viewport is set to. Margin grows in both
+## directions, so an overrun does not simply spill off the bottom: it is split
+## evenly, and the legend above the circle disappears off the top at the same
+## moment the loop strip is clipped at the bottom. Scaling against a base tall
+## enough for the content is what keeps both ends on screen.
+##
+## The margin over 1098 is deliberate slack. Anything added to a row or to the
+## strip eats into it before it starts costing pixels off the top again.
 ##
 ## Portrait's width is dictated rather than chosen: one ChordRow measures 1198px
 ## across and the panel 1246, so anything narrower would clip the rows instead
@@ -24,7 +34,7 @@ extends Control
 ##
 ## The row gained 100px when the add-to-loop button joined the two play buttons
 ## - an 84px target plus the HBox's 16px separation - and this had to follow it.
-const LANDSCAPE_BASE := Vector2i(1920, 1080)
+const LANDSCAPE_BASE := Vector2i(1920, 1120)
 const PORTRAIT_BASE := Vector2i(1320, 2170)
 
 ## The smallest the stacked circle may be squeezed to. Its own contents need

@@ -11,9 +11,9 @@ script = ExtResource("1_panel")
 [node name="Margin" type="MarginContainer" parent="." unique_id=1936193744]
 layout_mode = 2
 theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
+theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_bottom = 12
 
 [node name="VBox" type="VBoxContainer" parent="Margin" unique_id=1756507878]
 layout_mode = 2
@@ -25,7 +25,7 @@ layout_mode = 2
 [node name="KeyBlock" type="VBoxContainer" parent="Margin/VBox/TopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="KeyTitle" type="Label" parent="Margin/VBox/TopRow/KeyBlock" unique_id=86013964]
 unique_name_in_owner = true
@@ -53,7 +53,7 @@ vertical_alignment = 1
 
 [node name="Toggles" type="VBoxContainer" parent="Margin/VBox/TopRow"]
 layout_mode = 2
-size_flags_vertical = 0
+size_flags_vertical = 4
 theme_override_constants/separation = 4
 
 [node name="MidiToggle" type="CheckButton" parent="Margin/VBox/TopRow/Toggles"]
