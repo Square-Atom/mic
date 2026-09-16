@@ -27,6 +27,16 @@ enum Glyph {
 const STROKE_RATIO := 0.082
 const MIN_STROKE := 1.5
 
+## How far the solid marks - the play triangle and the stop square - are rounded
+## off, as a fraction of the button. Small on purpose: enough to take the needle
+## off the triangle's point and the hard edge off the square, not so much that
+## either stops reading as its shape.
+const GLYPH_CORNER_RATIO := 0.05
+
+## Points along each corner's arc. Four is plenty at the size these are drawn:
+## the arc spans a few pixels, and more vertices cost more than they show.
+const CORNER_SEGMENTS := 4
+
 @export var glyph: Glyph = Glyph.PLUS:
 	set(value):
 		glyph = value
@@ -92,16 +102,73 @@ func _draw_trash(centre: Vector2, span: float, ink_color: Color, stroke: float) 
 func _draw_play(centre: Vector2, span: float, ink_color: Color) -> void:
 	var reach := span * 0.27
 	var origin := centre - Vector2(reach * 0.12, 0.0)
-	draw_colored_polygon(PackedVector2Array([
+	draw_colored_polygon(_rounded(PackedVector2Array([
 		origin + Vector2(-reach * 0.80, -reach),
 		origin + Vector2(-reach * 0.80, reach),
 		origin + Vector2(reach, 0.0),
-	]), ink_color)
+	]), span * GLYPH_CORNER_RATIO), ink_color)
 
 
 func _draw_stop(centre: Vector2, span: float, ink_color: Color) -> void:
-	var side := span * 0.40
-	draw_rect(Rect2(centre - Vector2(side, side) * 0.5, Vector2(side, side)), ink_color, true)
+	var half := span * 0.20
+	draw_colored_polygon(_rounded(PackedVector2Array([
+		centre + Vector2(-half, -half),
+		centre + Vector2(half, -half),
+		centre + Vector2(half, half),
+		centre + Vector2(-half, half),
+	]), span * GLYPH_CORNER_RATIO), ink_color)
+
+
+## A convex polygon with its corners rounded off, as a point list ready to fill.
+##
+## Each corner becomes the arc that sits tangent to both of its edges: the arc's
+## centre lies along the corner's bisector, and it meets each edge the same
+## distance back from the point. Sharper corners need to be met further back -
+## which is why the triangle's tip is cut further in than the square's corners,
+## and why both end up looking rounded by the same amount.
+##
+## Built as one polygon rather than a sharp fill with a thick outline stroked
+## over it. Two overlapping draws at this size show their seam wherever the
+## antialiased edges meet, and the stroke would push the mark outside the
+## bounds the glyph was measured for.
+func _rounded(points: PackedVector2Array, radius: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var count := points.size()
+	for i in count:
+		var corner := points[i]
+		var previous := points[(i - 1 + count) % count]
+		var following := points[(i + 1) % count]
+		var to_previous := (previous - corner).normalized()
+		var to_following := (following - corner).normalized()
+
+		# Half the interior angle, which is what sets how far back the arc has to
+		# meet each edge. A straight-through "corner" has no arc to draw.
+		var half_angle := acos(clampf(to_previous.dot(to_following), -1.0, 1.0)) * 0.5
+		if half_angle <= 0.001 or half_angle >= PI * 0.5 - 0.001:
+			out.append(corner)
+			continue
+
+		# Never eat past the middle of an edge, or two corners sharing it would
+		# round into each other and turn the shape inside out.
+		var setback := minf(
+			radius / tan(half_angle),
+			minf(previous.distance_to(corner), following.distance_to(corner)) * 0.5)
+		# The radius actually achieved, which is smaller than asked for whenever
+		# the setback above had to be capped.
+		var actual := setback * tan(half_angle)
+		var start := corner + to_previous * setback
+		var finish := corner + to_following * setback
+		var arc_centre := corner + (to_previous + to_following).normalized() \
+				* (actual / sin(half_angle))
+
+		var from_angle := (start - arc_centre).angle()
+		# The short way round: the arc of a corner never exceeds a half turn, so
+		# wrapping into -PI..PI always picks the sweep that stays on the shape.
+		var sweep := wrapf((finish - arc_centre).angle() - from_angle, -PI, PI)
+		for step in CORNER_SEGMENTS + 1:
+			var t := float(step) / CORNER_SEGMENTS
+			out.append(arc_centre + Vector2(actual, 0.0).rotated(from_angle + sweep * t))
+	return out
 
 
 ## A lowercase i: a separate dot above a stem.

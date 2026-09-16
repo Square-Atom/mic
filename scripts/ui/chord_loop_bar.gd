@@ -9,6 +9,12 @@ extends PanelContainer
 ## drift apart - and the loop keeps running correctly whether or not this node
 ## exists.
 
+## The same weight-700 face the numerals use. The empty strip has one job -
+## telling you where chords come from - and at the theme's regular weight it
+## read as a caption on the frame rather than an instruction.
+const BOLD_FONT := preload("res://themes/font_bold.tres")
+
+const HINT_FONT_SIZE := 18
 const TITLE_WIDTH := 92.0
 const TRANSPORT_SIZE := Vector2(88.0, 88.0)
 ## Tall enough for a slot's box and its delete button, so an empty strip is the
@@ -115,6 +121,8 @@ func _build_timeline() -> Control:
 	_hint = Label.new()
 	_hint.text = "Press + beside a chord to build a loop"
 	_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_hint.add_theme_font_override("font", BOLD_FONT)
+	_hint.add_theme_font_size_override("font_size", HINT_FONT_SIZE)
 	_hint.add_theme_color_override("font_color", Palette.TEXT_FAINT)
 	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_timeline.add_child(_hint)
