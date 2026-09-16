@@ -1,15 +1,15 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene format=3 uid="uid://cw3vat7aerb4w"]
 
-[ext_resource type="PackedScene" path="res://scenes/chord_panel.tscn" id="1_panel"]
+[ext_resource type="PackedScene" uid="uid://dqfeqxoq4aiaj" path="res://scenes/chord_panel.tscn" id="1_panel"]
 [ext_resource type="PackedScene" path="res://scenes/circle_of_fifths.tscn" id="2_circle"]
-[ext_resource type="Script" path="res://scripts/ui/legend.gd" id="3_legend"]
-[ext_resource type="Script" path="res://scripts/ui/mode_bar.gd" id="4_mode"]
-[ext_resource type="Script" path="res://scripts/ui/mode_description.gd" id="5_modedesc"]
-[ext_resource type="Script" path="res://scripts/ui/main_layout.gd" id="6_layout"]
-[ext_resource type="Script" path="res://scripts/ui/icon_button.gd" id="7_icon"]
-[ext_resource type="Script" path="res://scripts/ui/info_overlay.gd" id="8_info"]
+[ext_resource type="Script" uid="uid://b03m0hritj8mf" path="res://scripts/ui/legend.gd" id="3_legend"]
+[ext_resource type="Script" uid="uid://dqiba80et5xfc" path="res://scripts/ui/mode_bar.gd" id="4_mode"]
+[ext_resource type="Script" uid="uid://xi402x1cwhfu" path="res://scripts/ui/mode_description.gd" id="5_modedesc"]
+[ext_resource type="Script" uid="uid://qyts80upicnu" path="res://scripts/ui/main_layout.gd" id="6_layout"]
+[ext_resource type="Script" uid="uid://diujisf3unnvy" path="res://scripts/ui/icon_button.gd" id="7_icon"]
+[ext_resource type="Script" uid="uid://bil67p3k58ubl" path="res://scripts/ui/info_overlay.gd" id="8_info"]
 
-[node name="Main" type="Control"]
+[node name="Main" type="Control" unique_id=1131481861]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,7 +18,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_layout")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1945469339]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,7 +27,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.070588, 0.078431, 0.101961, 1)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1634774706]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -40,70 +40,71 @@ theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 14
 
-[node name="Layout" type="BoxContainer" parent="Margin"]
+[node name="Layout" type="BoxContainer" parent="Margin" unique_id=627374315]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 28
 
-[node name="ChordPanel" parent="Margin/Layout" instance=ExtResource("1_panel")]
+[node name="ChordPanel" parent="Margin/Layout" unique_id=1844861037 instance=ExtResource("1_panel")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.2
 
-[node name="Divider" type="ColorRect" parent="Margin/Layout"]
+[node name="Divider" type="ColorRect" parent="Margin/Layout" unique_id=713896480]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(1, 0)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="RightPane" type="VBoxContainer" parent="Margin/Layout"]
+[node name="RightPane" type="VBoxContainer" parent="Margin/Layout" unique_id=784241573]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="CircleTop" type="HBoxContainer" parent="Margin/Layout/RightPane"]
+[node name="CircleTop" type="HBoxContainer" parent="Margin/Layout/RightPane" unique_id=292570589]
 layout_mode = 2
 
-[node name="LegendSpacer" type="Control" parent="Margin/Layout/RightPane/CircleTop"]
+[node name="LegendSpacer" type="Control" parent="Margin/Layout/RightPane/CircleTop" unique_id=1811259237]
 custom_minimum_size = Vector2(34, 0)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="CircleLegend" type="HBoxContainer" parent="Margin/Layout/RightPane/CircleTop"]
+[node name="CircleLegend" type="HBoxContainer" parent="Margin/Layout/RightPane/CircleTop" unique_id=679735454]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 script = ExtResource("3_legend")
 
-[node name="InfoButton" type="Control" parent="Margin/Layout/RightPane/CircleTop"]
+[node name="InfoButton" type="Control" parent="Margin/Layout/RightPane/CircleTop" unique_id=1667456287]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "About this app"
+mouse_default_cursor_shape = 2
 script = ExtResource("7_icon")
 glyph = 6
 
-[node name="CirclePane" type="AspectRatioContainer" parent="Margin/Layout/RightPane"]
+[node name="CirclePane" type="AspectRatioContainer" parent="Margin/Layout/RightPane" unique_id=1060740668]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CircleOfFifths" parent="Margin/Layout/RightPane/CirclePane" instance=ExtResource("2_circle")]
+[node name="CircleOfFifths" parent="Margin/Layout/RightPane/CirclePane" unique_id=1252034683 instance=ExtResource("2_circle")]
 layout_mode = 2
 
-[node name="ModeBar" type="HBoxContainer" parent="Margin/Layout/RightPane"]
+[node name="ModeBar" type="HBoxContainer" parent="Margin/Layout/RightPane" unique_id=1856491655]
 layout_mode = 2
 script = ExtResource("4_mode")
 
-[node name="ModeDescription" type="VBoxContainer" parent="Margin/Layout/RightPane"]
+[node name="ModeDescription" type="VBoxContainer" parent="Margin/Layout/RightPane" unique_id=251801363]
 layout_mode = 2
 script = ExtResource("5_modedesc")
 
-[node name="InfoOverlay" type="Control" parent="."]
+[node name="InfoOverlay" type="Control" parent="." unique_id=426171353]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
