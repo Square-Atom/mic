@@ -17,6 +17,14 @@ const BOLD_FONT := preload("res://themes/font_bold.tres")
 const HINT_FONT_SIZE := 18
 const TITLE_WIDTH := 92.0
 const TRANSPORT_SIZE := Vector2(88.0, 88.0)
+## Two thirds of the transport. Emptying the loop is the counterpart to playing
+## it, so it is sized against that rather than against the slots' own delete
+## buttons - but smaller, because it is not what you came to the strip to do.
+const CLEAR_SIZE := Vector2(58.0, 58.0)
+## How far the clear button fades when there is nothing to clear. Short of a
+## disabled state, which DrawnButton has no notion of, and short of hiding it,
+## which would shift the whole strip the moment the first chord landed.
+const CLEAR_IDLE_ALPHA := 0.35
 ## Tall enough for a slot's box and its delete button, so an empty strip is the
 ## same height as a full one and the panel does not jump when the first chord
 ## lands in it.
@@ -26,6 +34,7 @@ var _timeline: LoopTimeline
 var _hint: Label
 var _ostinato_picker: OptionButton
 var _transport: IconButton
+var _clear: IconButton
 var _slots: Array[LoopSlot] = []
 ## The slot a drag left from, remembered because a drag that lands nowhere is a
 ## delete and by then there is nothing under the cursor to ask.
@@ -88,9 +97,22 @@ func _build() -> void:
 	row.add_theme_constant_override("separation", 18)
 	margin.add_child(row)
 
+	row.add_child(_build_clear())
 	row.add_child(_build_timeline())
 	row.add_child(_build_settings())
 	row.add_child(_build_transport())
+
+
+## Empties the strip. The same can the slots carry, at the size of the job:
+## this one does what every slot's delete button does, all at once.
+func _build_clear() -> Control:
+	_clear = IconButton.new()
+	_clear.glyph = IconButton.Glyph.TRASH
+	_clear.custom_minimum_size = CLEAR_SIZE
+	_clear.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_clear.tooltip_text = "Remove every chord from the loop"
+	_clear.pressed.connect(ChordLoop.clear)
+	return _clear
 
 
 ## The sunken frame the slots sit in. Its own panel, a shade darker than the
@@ -228,6 +250,10 @@ func _rebuild() -> void:
 
 	var degrees := ChordLoop.slots
 	_hint.visible = degrees.is_empty()
+	# Nothing to throw away yet, and this is the state the strip is first seen
+	# in - a fully lit trash can beside "press + to build a loop" invites a
+	# press that would do nothing.
+	_clear.modulate.a = CLEAR_IDLE_ALPHA if degrees.is_empty() else 1.0
 	var chords := AppState.current_chords()
 	for i in degrees.size():
 		var chord := chords[degrees[i]]

@@ -113,6 +113,19 @@ func move_slot(from: int, to: int) -> void:
 	slots_changed.emit(slots)
 
 
+## Throw the whole progression away.
+##
+## Stops first. An empty loop has nothing to sound, so a transport left running
+## over one would sit there showing a playing state and producing silence -
+## and the next chord added would join a bar already half elapsed.
+func clear() -> void:
+	if slots.is_empty():
+		return
+	stop()
+	slots.clear()
+	slots_changed.emit(slots)
+
+
 # --- Settings --------------------------------------------------------------
 
 func set_tempo(bpm: int) -> void:
