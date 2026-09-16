@@ -49,6 +49,8 @@ func _ready() -> void:
 	style.set_corner_radius_all(10)
 	add_theme_stylebox_override("panel", style)
 	_build()
+	if OS.has_feature("web"):
+		_enlarge_ostinato_list()
 
 	ChordLoop.slots_changed.connect(_on_slots_changed)
 	ChordLoop.playing_changed.connect(_on_playing_changed)
@@ -179,6 +181,24 @@ func _build_settings() -> Control:
 	ostinato_row.add_child(_ostinato_picker)
 	settings.add_child(ostinato_row)
 	return settings
+
+
+## Double the text and the row spacing of the list the ostinato picker opens.
+##
+## Web only, because that is where the app meets phones: at the size a desktop
+## wants, the eight names sit too close together for a fingertip to pick one
+## reliably. The button itself is left alone - it is one target, not eight.
+##
+## The current values are read from the theme and doubled, rather than new
+## numbers written in, so the list stays twice whatever the theme says even if
+## the theme's own sizes change. Called once the strip is in the tree, because
+## a control outside it cannot see the project theme to read from.
+func _enlarge_ostinato_list() -> void:
+	var popup := _ostinato_picker.get_popup()
+	popup.add_theme_font_size_override("font_size",
+			popup.get_theme_font_size("font_size") * 2)
+	popup.add_theme_constant_override("v_separation",
+			popup.get_theme_constant("v_separation") * 2)
 
 
 func _build_transport() -> Control:
